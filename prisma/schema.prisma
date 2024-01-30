@@ -29,6 +29,10 @@ model User {
   usersInGroups UsersInGroups[]
   joinRequests JoinRequests[]
   followedLists ListFollowers[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  createdUserInGroups UsersInGroups[] @relation("Creator")
 }
 
 model Post {
@@ -46,6 +50,9 @@ model Post {
   isRetweet Boolean @default(false)
   likes Likes[]
   bookmarks Bookmarks[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model Likes {
@@ -53,6 +60,7 @@ model Likes {
   userId Int
   post Post @relation(fields: [postId], references: [id])
   postId Int
+  createdAt DateTime @default(now())
 
   @@id([userId, postId])
 }
@@ -62,6 +70,7 @@ model Follows {
   followerId Int
   followed User @relation("Followed", fields: [followedId], references: [id])
   followedId Int
+  createdAt DateTime @default(now())
 
   @@id([followerId, followedId])
 }
@@ -71,6 +80,7 @@ model Bookmarks {
   userId Int
   post Post @relation(fields: [postId], references: [id])
   postId Int
+  createdAt DateTime @default(now())
 
   @@id([userId, postId])
 }
@@ -84,6 +94,9 @@ model Lists {
   creatorId Int
   usersInLists UsersInLists[]
   listFollowers ListFollowers[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model ListFollowers {
@@ -91,6 +104,7 @@ model ListFollowers {
   listId Int
   follower User @relation(fields: [followerId], references: [id])
   followerId Int
+  createdAt DateTime @default(now())
 
   @@id([listId, followerId])
 }
@@ -100,6 +114,7 @@ model UsersInLists {
   userId Int
   list Lists @relation(fields: [listId], references: [id])
   listId Int
+  createdAt DateTime @default(now())
 
   @@id([userId, listId])
 }
@@ -113,6 +128,9 @@ model Groups {
   creatorId Int
   usersInGroups UsersInGroups[]
   joinRequests JoinRequests[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model UsersInGroups {
@@ -120,6 +138,9 @@ model UsersInGroups {
   userId Int
   group Groups @relation(fields: [groupId], references: [id])
   groupId Int
+  createdAt DateTime @default(now())
+  createdBy User @relation("Creator", fields: [createdById], references: [id])
+  createdById Int
 
   @@id([userId, groupId])
 }
@@ -129,6 +150,7 @@ model JoinRequests {
   userId Int
   group Groups @relation(fields: [groupId], references: [id])
   groupId Int
+  createdAt DateTime @default(now())
 
   @@id([userId, groupId])
 }
