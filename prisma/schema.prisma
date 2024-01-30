@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  userName String? @db.VarChar(100)
+  userTag String @unique @db.VarChar(25)
+  email String @unique
+  password String
+  avatar String? @default("default.jpg")
+  biography String? @db.VarChar(500)
+  posts Post[]
+  likedPosts Likes[]
+  followers Follows[] @relation("Follower")
+  following Follows[] @relation("Followed")
+  bookmarks Bookmarks[]
+  lists Lists[]
+  usersInLists UsersInLists[]
+  groups Groups[]
+  usersInGroups UsersInGroups[]
+  joinRequests JoinRequests[]
+  followedLists ListFollowers[]
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  content String @db.VarChar(280)
+  likesCount Int @default(0)
+  author User @relation(fields: [authorId], references: [id])
+  authorId Int
+  parentPost Post? @relation("Replies", fields: [parentPostId], references: [id])
+  parentPostId Int?
+  replies Post[] @relation("Replies")
+  originalPost Post? @relation("Retweets", fields: [originalPostId], references: [id])
+  originalPostId Int?
+  retweets Post[] @relation("Retweets")
+  isRetweet Boolean @default(false)
+  likes Likes[]
+  bookmarks Bookmarks[]
+}
+
+model Likes {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+
+  @@id([userId, postId])
+}
+
+model Follows {
+  follower User @relation("Follower", fields: [followerId], references: [id])
+  followerId Int
+  followed User @relation("Followed", fields: [followedId], references: [id])
+  followedId Int
+
+  @@id([followerId, followedId])
+}
+
+model Bookmarks {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+
+  @@id([userId, postId])
+}
+
+model Lists {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100)
+  description String? @db.VarChar(500)
+  creator User @relation(fields: [creatorId], references: [id])
+  isPrivate Boolean @default(false)
+  creatorId Int
+  usersInLists UsersInLists[]
+  listFollowers ListFollowers[]
+}
+
+model ListFollowers {
+  list Lists @relation(fields: [listId], references: [id])
+  listId Int
+  follower User @relation(fields: [followerId], references: [id])
+  followerId Int
+
+  @@id([listId, followerId])
+}
+
+model UsersInLists {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  list Lists @relation(fields: [listId], references: [id])
+  listId Int
+
+  @@id([userId, listId])
+}
+
+model Groups {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100)
+  description String? @db.VarChar(500)
+  creator User @relation(fields: [creatorId], references: [id])
+  isPrivate Boolean @default(false)
+  creatorId Int
+  usersInGroups UsersInGroups[]
+  joinRequests JoinRequests[]
+}
+
+model UsersInGroups {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  group Groups @relation(fields: [groupId], references: [id])
+  groupId Int
+
+  @@id([userId, groupId])
+}
+
+model JoinRequests {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  group Groups @relation(fields: [groupId], references: [id])
+  groupId Int
+
+  @@id([userId, groupId])
+}
