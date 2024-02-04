@@ -18,6 +18,7 @@ model User {
   password String
   avatar String? @default("default.jpg")
   biography String? @db.VarChar(500)
+  tokenVersion Int @default(0)
   posts Post[]
   likedPosts Likes[]
   followers Follows[] @relation("Follower")

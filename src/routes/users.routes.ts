@@ -1,16 +1,19 @@
 import { Router } from "express";
 import { UserController } from "../controller/users.controller";
+import { UserService } from "../services/user.service";
+import { AuthService } from "../services/auth.service";
+import { authenticate } from "../middleware/auth.middleware";
 
-export const initUserRoutes = (): Router => {
+export const initUserRoutes = (userService: UserService, authService: AuthService): Router => {
     const router = Router();
 
-    const userController = new UserController();
+    const userController = new UserController(userService, authService);
 
     router.post("/", userController.create);
 
-    router.put("/:id", userController.update);
+    router.put("/:id", authenticate, userController.update);
 
-    router.delete("/:id", userController.delete);
+    router.delete("/:id", authenticate, userController.delete);
 
     router.get("/", userController.findAll);
 
@@ -28,11 +31,11 @@ export const initUserRoutes = (): Router => {
 
     router.get("/:id/groups", userController.findGroups);
 
-    router.get("/:id/join-requests", userController.findGroupJoinRequests);
+    router.get("/:id/join-requests", authenticate, userController.findGroupJoinRequests);
 
-    router.post("/:id/follower", userController.follow);
+    router.post("/:id/follower", authenticate, userController.follow);
 
-    router.delete("/:id/follower/:followerId", userController.unfollow);
+    router.delete("/:id/follower/:followerId", authenticate, userController.unfollow);
 
     return router;
 }

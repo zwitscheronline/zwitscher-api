@@ -1,17 +1,61 @@
 import { Request, Response } from "express";
+import { HTTPCodes } from "../types/http_codes.enum";
+import { AuthService } from "../services/auth.service";
+import { isErr } from "../types/error";
 
 export class AuthController {
-    constructor() {}
+    private readonly authService: AuthService;
 
-    login(req: Request, res: Response) {
-        res.send("Login");
+    constructor(authService: AuthService) {
+        this.authService = authService;
     }
 
-    logout(req: Request, res: Response) {
-        res.send("Logout");
+    async login(req: Request, res: Response) {
+        try {
+            const { userTag, email, password } = req.body;
+
+            const returning = await this.authService.login({
+                userTag,
+                email,
+                password,
+            });
+
+            if (isErr(returning)) {
+                return res.status(returning.status)
+                    .json({ error: returning.message });
+            }
+
+            res.header("Authorization", returning.token);
+            res.header("refresh-token", returning.refreshToken);
+
+            return res.status(HTTPCodes.Ok).json({ message: "Logged in" });
+        } catch (error) {
+            return res.status(HTTPCodes.InternalServerError)
+                .json({
+                    error: "Unable to login",
+                });
+        }
     }
     
-    createToken(req: Request, res: Response) {
-        res.send("Create new access token");
+    async createToken(req: Request, res: Response) {
+        try {
+            const { token } = req.body;
+
+            const returning = await this.authService.refreshAccessToken(token);
+
+            if (isErr(returning)) {
+                return res.status(returning.status)
+                    .json({ error: returning.message });
+            }
+
+            res.header("Authorization", returning);
+
+            return res.status(HTTPCodes.Ok).json({ message: "Token refreshed" });
+        } catch (error) {
+            return res.status(HTTPCodes.InternalServerError)
+                .json({
+                    error: "Unable to create new token",
+                });
+        }
     }
 }

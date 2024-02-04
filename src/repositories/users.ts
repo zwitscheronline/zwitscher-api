@@ -4,7 +4,7 @@ import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
 
 export class UserRepository implements Repository<User> {
-    async create(data: User): Promise<User> {
+    async create(data: Omit<User, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar">): Promise<User> {
         try {
             return await prismaClient.user.create({
                 data,
@@ -13,11 +13,16 @@ export class UserRepository implements Repository<User> {
             throw error;
         }
     }
-    async update(data: User): Promise<User> {
+    async update(data: Partial<User>): Promise<User> {
         try {
+            if (!data.id) {
+                throw new Error("User id is required");
+            }
+
             return await prismaClient.user.update({
                 where: {
                     id: data.id,
+                    deletedAt: null,
                 },
                 data,
             });
@@ -44,21 +49,23 @@ export class UserRepository implements Repository<User> {
             return await prismaClient.user.findUnique({
                 where: {
                     id,
+                    deletedAt: null,
                 }
             });
         } catch (error) {
             throw error;
         }
     }
-    async findAll(options: RequestOptions): Promise<User[]> {
+    async findAll(options: RequestOptions & { ids?: number[] }): Promise<User[]> {
         const page = options.page || 1;
         const entriesPerPage = options.entriesPerPage || 25;
 
         try {
             if (options.orderByField) {
-                const users = await prismaClient.user.findMany({
+                return await prismaClient.user.findMany({
                     where: {
                         deletedAt: null,
+                        ...(options.ids && { id: { in: options.ids } }),
                     },
                     orderBy: {
                         [options.orderByField]: options.orderBy
@@ -66,17 +73,42 @@ export class UserRepository implements Repository<User> {
                     skip: (page - 1) * entriesPerPage,
                     take: options.entriesPerPage,
                 });
-                return users;
             } else {
-                const users = await prismaClient.user.findMany({
+                return await prismaClient.user.findMany({
                     where: {
                         deletedAt: null,
+                        ...(options.ids && { id: { in: options.ids } }),
                     },
                     skip: (page - 1) * entriesPerPage,
                     take: options.entriesPerPage,
                 });
-                return users;
             }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async findByEmail(email: string): Promise<User|null> {
+        try {
+            return await prismaClient.user.findUnique({
+                where: {
+                    email,
+                    deletedAt: null,
+                }
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async findByUserTag(userTag: string): Promise<User|null> {
+        try {
+            return await prismaClient.user.findUnique({
+                where: {
+                    userTag,
+                    deletedAt: null,
+                }
+            });
         } catch (error) {
             throw error;
         }
