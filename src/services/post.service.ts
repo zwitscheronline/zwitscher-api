@@ -15,11 +15,10 @@ export class PostService {
     async findAll(options: RequestOptions): Promise<Post[] | Err> {
         try {
             const posts = await this.postRepository.findAll(options);
-            console.log(posts);
             return posts;
         } catch (error) {
             return {
-                message: "Unable to find users",
+                message: "Unable to find posts",
                 status: HTTPCodes.InternalServerError,
             };
         }

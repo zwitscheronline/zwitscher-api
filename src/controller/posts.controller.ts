@@ -13,7 +13,12 @@ export class PostController {
         const postRepository = new PostRepository();
         const postService = new PostService(postRepository);
         const posts = await postService.findAll({});
-        res.json(posts)
+        res.set({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true,
+        })
+        res.status(200).send(posts);
     }
 
     findById(req: Request, res: Response) {
