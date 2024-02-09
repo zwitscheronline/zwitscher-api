@@ -1,8 +1,9 @@
 import { Post } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IPostRepository } from "../interfaces/repositories";
 
-export class PostRepository {
+export class PostRepository implements IPostRepository<Post> {
 
     async create(data: Post): Promise<Post> {
         try {
@@ -14,11 +15,11 @@ export class PostRepository {
         }
     }
 
-    async update(id: number, data: Post): Promise<Post> {
+    async update(data: Post): Promise<Post> {
         try {
             return await prismaClient.post.update({
                 where: {
-                    id,
+                    id: data.id,
                 },
                 data,
             });
@@ -139,6 +140,23 @@ export class PostRepository {
                     parentPost: true,
                     originalPost: true,
                 },
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async findById(id: number): Promise<Post | null> {
+        try {
+            return await prismaClient.post.findFirst({
+                where: {
+                    id,
+                    deletedAt: null,
+                },
+                include: {
+                    originalPost: true,
+                    parentPost: true,
+                }
             });
         } catch (error) {
             throw error;

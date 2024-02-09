@@ -9,33 +9,33 @@ export const initUserRoutes = (userService: UserService, authService: AuthServic
 
     const userController = new UserController(userService, authService);
 
-    router.post("/", userController.create);
+    router.post("/", userController.create.bind(userController));
 
-    router.put("/:id", authenticate, userController.update);
+    router.put("/:id", authenticate, userController.update.bind(userController));
 
-    router.delete("/:id", authenticate, userController.delete);
+    router.delete("/:id", authenticate, userController.delete.bind(userController));
 
-    router.get("/", userController.findAll);
+    router.get("/", userController.findAll.bind(userController));
 
-    router.get("/:id", userController.findById);
+    router.get("/:id", userController.findById.bind(userController));
 
-    router.get("/:id/posts", userController.findPosts);
+    router.get("/:id/posts", userController.findPosts.bind(userController));
 
-    router.get("/:id/follower", userController.findFollowers);
+    router.get("/:id/follower", userController.findFollowers.bind(userController));
 
-    router.get("/:id/following", userController.findFollowing);
+    router.get("/:id/following", userController.findFollowing.bind(userController));
 
-    router.get("/:id/lists", userController.findLists);
+    router.get("/:id/lists", userController.findLists.bind(userController));
 
-    router.get("/:id/likes", userController.findLikes);
+    router.get("/:id/likes", userController.findLikes.bind(userController));
 
-    router.get("/:id/groups", userController.findGroups);
+    router.get("/:id/groups", userController.findGroups.bind(userController));
 
-    router.get("/:id/join-requests", authenticate, userController.findGroupJoinRequests);
+    router.get("/:id/join-requests", authenticate, userController.findGroupJoinRequests.bind(userController));
 
-    router.post("/:id/follower", authenticate, userController.follow);
+    router.post("/:id/follower", authenticate, userController.follow.bind(userController));
 
-    router.delete("/:id/follower/:followerId", authenticate, userController.unfollow);
+    router.delete("/:id/follower/:followerId", authenticate, userController.unfollow.bind(userController));
 
     return router;
 }

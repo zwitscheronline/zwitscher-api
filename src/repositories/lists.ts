@@ -1,8 +1,9 @@
 import { Lists } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { prismaClient } from "../utils/database";
+import { IListRepository } from "../interfaces/repositories";
 
-export class ListRepository {
+export class ListRepository implements IListRepository<Lists> {
     async create(data: Lists): Promise<Lists> {
         try {
             return await prismaClient.lists.create({

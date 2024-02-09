@@ -1,8 +1,9 @@
 import { Follows } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IFollowerRepository } from "../interfaces/repositories";
 
-export class FollowerRepository {
+export class FollowerRepository implements IFollowerRepository<Follows> {
 
     async create(data: Follows): Promise<Follows> {
         try {
@@ -55,7 +56,7 @@ export class FollowerRepository {
         try {
             return await prismaClient.follows.findMany({
                 where: {
-                    followedId: id,
+                    followerId: id,
                 },
                 take: entriesPerPage,
                 skip: (page - 1) * entriesPerPage,
@@ -75,7 +76,7 @@ export class FollowerRepository {
         try {
             return await prismaClient.follows.findMany({
                 where: {
-                    followerId: id,
+                    followedId: id,
                 },
                 take: entriesPerPage,
                 skip: (page - 1) * entriesPerPage,
