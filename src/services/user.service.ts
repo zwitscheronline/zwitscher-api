@@ -9,10 +9,16 @@ import {
   validateID,
   validateMultipleIDs,
 } from "../utils/validator";
-import { UserOutput, UserOutputStrict, toUserOutput, toUserOutputStrict } from "../types/user_output";
+import {
+  UserOutput,
+  UserOutputStrict,
+  toUserOutput,
+  toUserOutputStrict,
+} from "../types/user_output";
 import { RequestOptions } from "../types/request_options";
 import { FollowerRepository } from "../repositories/followers";
 import { excludeFields } from "../utils/exclude";
+import { logger } from "../utils/logger";
 
 export class UserService {
   private readonly EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -113,9 +119,10 @@ export class UserService {
       if (Array.isArray(userOutput)) {
         return userOutput[0];
       } else {
-        return userOutput
+        return userOutput;
       }
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -175,6 +182,7 @@ export class UserService {
         return userOutput;
       }
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -220,6 +228,7 @@ export class UserService {
         password: hashedPassword,
       });
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -243,6 +252,7 @@ export class UserService {
     try {
       await this.userRepository.delete(userId);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -260,6 +270,7 @@ export class UserService {
     try {
       user = await this.userRepository.findById(id);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
     if (!user) {
@@ -289,6 +300,7 @@ export class UserService {
     try {
       user = await this.userRepository.findByUserTag(userTag);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
     if (!user) {
@@ -320,6 +332,7 @@ export class UserService {
         return [usersOutput];
       }
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -337,6 +350,7 @@ export class UserService {
     try {
       user = await this.userRepository.findById(userId);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
     if (!user) {
@@ -360,6 +374,7 @@ export class UserService {
         createdAt: new Date(),
       });
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -379,6 +394,7 @@ export class UserService {
         userId
       );
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
     if (!following) {
@@ -387,6 +403,7 @@ export class UserService {
     try {
       await this.followingsRepository.delete(requesterId, userId);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -407,6 +424,7 @@ export class UserService {
           requesterId
         );
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
     if (!followingItem) {
@@ -415,6 +433,7 @@ export class UserService {
     try {
       await this.followingsRepository.delete(followerId, requesterId);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -434,6 +453,7 @@ export class UserService {
         options ?? {}
       );
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
     if (followers.length === 0) {
@@ -455,6 +475,7 @@ export class UserService {
         return [followersOutput];
       }
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }
@@ -475,6 +496,7 @@ export class UserService {
         options ?? {}
       );
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
 
@@ -498,6 +520,7 @@ export class UserService {
         return [followingUsersOutput];
       }
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(`${error}`, HTTPCodes.InternalServerError);
     }
   }

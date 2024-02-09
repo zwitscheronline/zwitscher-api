@@ -7,6 +7,7 @@ import { LoginResponse } from "../types/responses";
 import { compare } from "bcrypt";
 import { AccessTokenData, RefreshTokenData } from "../types/token_data";
 import { sign, verify } from "jsonwebtoken";
+import { logger } from "../utils/logger";
 
 export class AuthService {
   private readonly userRepository: UserRepository;
@@ -148,6 +149,7 @@ export class AuthService {
       refreshTokenData = this.verifyRefreshToken(token);
       user = await this.userRepository.findById(parseInt(refreshTokenData.sub));
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(
         "Unable to refresh token",
         HTTPCodes.InternalServerError
@@ -164,6 +166,7 @@ export class AuthService {
         userTag: user.userTag,
       });
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus(
         "Unable to refresh token",
         HTTPCodes.InternalServerError
@@ -175,6 +178,7 @@ export class AuthService {
     try {
       return this.verifyAccessToken(token);
     } catch (error) {
+      logger.error(error);
       throw new ErrorWithStatus("Invalid token", HTTPCodes.Unauthorized);
     }
   }
