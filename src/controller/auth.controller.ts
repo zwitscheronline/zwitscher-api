@@ -20,16 +20,12 @@ export class AuthController {
                 password,
             });
 
-            if (isErr(returning)) {
-                return res.status(returning.status)
-                    .json({ error: returning.message });
-            }
-
             res.header("Authorization", returning.token);
             res.header("refresh-token", returning.refreshToken);
 
             return res.status(HTTPCodes.Ok).json({ message: "Logged in" });
         } catch (error) {
+            console.log(error);
             return res.status(HTTPCodes.InternalServerError)
                 .json({
                     error: "Unable to login",
@@ -42,11 +38,6 @@ export class AuthController {
             const { token } = req.body;
 
             const returning = await this.authService.refreshAccessToken(token);
-
-            if (isErr(returning)) {
-                return res.status(returning.status)
-                    .json({ error: returning.message });
-            }
 
             res.header("Authorization", returning);
 

@@ -1,8 +1,9 @@
 import { JoinRequests } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IJoinRequestRepository } from "../interfaces/repositories";
 
-export class JoinRequestRepository {
+export class JoinRequestRepository implements IJoinRequestRepository<JoinRequests> {
     async create(data: JoinRequests): Promise<JoinRequests> {
         try {
             return await prismaClient.joinRequests.create({

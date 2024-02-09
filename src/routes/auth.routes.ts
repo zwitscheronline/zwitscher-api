@@ -7,9 +7,9 @@ export const initAuthRoutes = (authService: AuthService): Router => {
 
     const authController = new AuthController(authService);
 
-    router.post("/", authController.login);
+    router.post("/", authController.login.bind(authController));
 
-    router.post("/token",  authController.createToken);
+    router.post("/token",  authController.createToken.bind(authController));
 
     return router;
 }
