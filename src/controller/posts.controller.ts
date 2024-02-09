@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import {PostService} from "../services/post.service";
+import {PostRepository} from "../repositories/posts";
 
 export class PostController {
     constructor() {}
@@ -7,8 +9,11 @@ export class PostController {
         res.send("create post");
     }
 
-    findAll(req: Request, res: Response) {
-        res.send("get all posts");
+    async findAll(req: Request, res: Response) {
+        const postRepository = new PostRepository();
+        const postService = new PostService(postRepository);
+        const posts = await postService.findAll({});
+        res.json(posts)
     }
 
     findById(req: Request, res: Response) {

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,147 +8,147 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  userName String? @db.VarChar(100)
-  userTag String @unique @db.VarChar(25)
-  email String @unique
-  password String
-  avatar String? @default("default.jpg")
-  biography String? @db.VarChar(500)
-  tokenVersion Int @default(0)
-  posts Post[]
-  likedPosts Likes[]
-  followers Follows[] @relation("Follower")
-  following Follows[] @relation("Followed")
-  bookmarks Bookmarks[]
-  lists Lists[]
-  usersInLists UsersInLists[]
-  groups Groups[]
-  usersInGroups UsersInGroups[]
-  joinRequests JoinRequests[]
-  followedLists ListFollowers[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  id                  Int             @id @default(autoincrement())
+  userName            String?         @db.VarChar(100)
+  userTag             String          @unique @db.VarChar(25)
+  email               String          @unique
+  password            String
+  avatar              String?         @default("default.jpg")
+  biography           String?         @db.VarChar(500)
+  createdAt           DateTime        @default(now())
+  deletedAt           DateTime?
+  updatedAt           DateTime        @updatedAt
+  tokenVersion        Int             @default(0)
+  bookmarks           Bookmarks[]
+  following           Follows[]       @relation("Followed")
+  followers           Follows[]       @relation("Follower")
+  groups              Groups[]
+  joinRequests        JoinRequests[]
+  likedPosts          Likes[]
+  followedLists       ListFollowers[]
+  lists               Lists[]
+  posts               Post[]
   createdUserInGroups UsersInGroups[] @relation("Creator")
+  usersInGroups       UsersInGroups[]
+  usersInLists        UsersInLists[]
 }
 
 model Post {
-  id Int @id @default(autoincrement())
-  content String @db.VarChar(280)
-  likesCount Int @default(0)
-  author User @relation(fields: [authorId], references: [id])
-  authorId Int
-  parentPost Post? @relation("Replies", fields: [parentPostId], references: [id])
-  parentPostId Int?
-  replies Post[] @relation("Replies")
-  originalPost Post? @relation("Retweets", fields: [originalPostId], references: [id])
+  id             Int         @id @default(autoincrement())
+  content        String      @db.VarChar(280)
+  likesCount     Int         @default(0)
+  authorId       Int
+  parentPostId   Int?
   originalPostId Int?
-  retweets Post[] @relation("Retweets")
-  isRetweet Boolean @default(false)
-  likes Likes[]
-  bookmarks Bookmarks[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  isRetweet      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  deletedAt      DateTime?
+  updatedAt      DateTime    @updatedAt
+  bookmarks      Bookmarks[]
+  likes          Likes[]
+  author         User        @relation(fields: [authorId], references: [id])
+  originalPost   Post?       @relation("Retweets", fields: [originalPostId], references: [id])
+  retweets       Post[]      @relation("Retweets")
+  parentPost     Post?       @relation("Replies", fields: [parentPostId], references: [id])
+  replies        Post[]      @relation("Replies")
 }
 
 model Likes {
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  post Post @relation(fields: [postId], references: [id])
-  postId Int
+  userId    Int
+  postId    Int
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, postId])
 }
 
 model Follows {
-  follower User @relation("Follower", fields: [followerId], references: [id])
   followerId Int
-  followed User @relation("Followed", fields: [followedId], references: [id])
   followedId Int
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  followed   User     @relation("Followed", fields: [followedId], references: [id])
+  follower   User     @relation("Follower", fields: [followerId], references: [id])
 
   @@id([followerId, followedId])
 }
 
 model Bookmarks {
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  post Post @relation(fields: [postId], references: [id])
-  postId Int
+  userId    Int
+  postId    Int
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, postId])
 }
 
 model Lists {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(100)
-  description String? @db.VarChar(500)
-  creator User @relation(fields: [creatorId], references: [id])
-  isPrivate Boolean @default(false)
-  creatorId Int
-  usersInLists UsersInLists[]
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  description   String?         @db.VarChar(500)
+  isPrivate     Boolean         @default(false)
+  creatorId     Int
+  createdAt     DateTime        @default(now())
+  deletedAt     DateTime?
+  updatedAt     DateTime        @updatedAt
   listFollowers ListFollowers[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  creator       User            @relation(fields: [creatorId], references: [id])
+  usersInLists  UsersInLists[]
 }
 
 model ListFollowers {
-  list Lists @relation(fields: [listId], references: [id])
-  listId Int
-  follower User @relation(fields: [followerId], references: [id])
+  listId     Int
   followerId Int
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  follower   User     @relation(fields: [followerId], references: [id])
+  list       Lists    @relation(fields: [listId], references: [id])
 
   @@id([listId, followerId])
 }
 
 model UsersInLists {
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  list Lists @relation(fields: [listId], references: [id])
-  listId Int
+  userId    Int
+  listId    Int
   createdAt DateTime @default(now())
+  list      Lists    @relation(fields: [listId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, listId])
 }
 
 model Groups {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(100)
-  description String? @db.VarChar(500)
-  creator User @relation(fields: [creatorId], references: [id])
-  isPrivate Boolean @default(false)
-  creatorId Int
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  description   String?         @db.VarChar(500)
+  isPrivate     Boolean         @default(false)
+  creatorId     Int
+  createdAt     DateTime        @default(now())
+  deletedAt     DateTime?
+  updatedAt     DateTime        @updatedAt
+  creator       User            @relation(fields: [creatorId], references: [id])
+  joinRequests  JoinRequests[]
   usersInGroups UsersInGroups[]
-  joinRequests JoinRequests[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
 }
 
 model UsersInGroups {
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  group Groups @relation(fields: [groupId], references: [id])
-  groupId Int
-  createdAt DateTime @default(now())
-  createdBy User @relation("Creator", fields: [createdById], references: [id])
+  userId      Int
+  groupId     Int
+  createdAt   DateTime @default(now())
   createdById Int
+  createdBy   User     @relation("Creator", fields: [createdById], references: [id])
+  group       Groups   @relation(fields: [groupId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
 
   @@id([userId, groupId])
 }
 
 model JoinRequests {
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  group Groups @relation(fields: [groupId], references: [id])
-  groupId Int
+  userId    Int
+  groupId   Int
   createdAt DateTime @default(now())
+  group     Groups   @relation(fields: [groupId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@id([userId, groupId])
 }

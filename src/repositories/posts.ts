@@ -58,9 +58,9 @@ export class PostRepository {
     }
 
     async findAll(options: RequestOptions): Promise<Post[]> {
+
         const page = options.page || 1;
         const entriesPerPage = options.entriesPerPage || 25;
-
         try {
             return await prismaClient.post.findMany({
                 where: {
