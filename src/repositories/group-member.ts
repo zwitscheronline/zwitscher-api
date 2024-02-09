@@ -1,8 +1,9 @@
 import { UsersInGroups } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { prismaClient } from "../utils/database";
+import { IGroupMemberRepository } from "../interfaces/repositories";
 
-export class GroupMemberRepository {
+export class GroupMemberRepository implements IGroupMemberRepository<UsersInGroups> {
     async create(data: UsersInGroups): Promise<UsersInGroups> {
         try {
             return await prismaClient.usersInGroups.create({
@@ -72,7 +73,7 @@ export class GroupMemberRepository {
         }
     }
 
-    async findAllByUser(userId: number, options: RequestOptions): Promise<UsersInGroups[]> {
+    async findAllByUserId(userId: number, options: RequestOptions): Promise<UsersInGroups[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 25;
 

@@ -1,10 +1,11 @@
-import { User } from "@prisma/client";
-import { Repository } from "../utils/repository";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IUserRepository } from "../interfaces/repositories";
+import { UserCreationData } from "../types/user-data";
+import { User } from "@prisma/client";
 
-export class UserRepository implements Repository<User> {
-    async create(data: Omit<User, "id" | "createdAt" | "updatedAt" | "deletedAt" | "avatar">): Promise<User> {
+export class UserRepository implements IUserRepository<User> {
+    async create(data: UserCreationData): Promise<User> {
         try {
             return await prismaClient.user.create({
                 data,
@@ -57,8 +58,8 @@ export class UserRepository implements Repository<User> {
         }
     }
     async findAll(options: RequestOptions & { ids?: number[] }): Promise<User[]> {
-        const page = options.page || 1;
-        const entriesPerPage = options.entriesPerPage || 25;
+        const page: number = options.page || 1;
+        const entriesPerPage: number = options.entriesPerPage || 25;
 
         try {
             if (options.orderByField) {
@@ -71,7 +72,7 @@ export class UserRepository implements Repository<User> {
                         [options.orderByField]: options.orderBy
                     },
                     skip: (page - 1) * entriesPerPage,
-                    take: options.entriesPerPage,
+                    take: entriesPerPage,
                 });
             } else {
                 return await prismaClient.user.findMany({
@@ -80,7 +81,7 @@ export class UserRepository implements Repository<User> {
                         ...(options.ids && { id: { in: options.ids } }),
                     },
                     skip: (page - 1) * entriesPerPage,
-                    take: options.entriesPerPage,
+                    take: entriesPerPage,
                 });
             }
         } catch (error) {

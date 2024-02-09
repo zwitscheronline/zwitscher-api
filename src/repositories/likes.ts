@@ -1,8 +1,9 @@
 import { Likes } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { prismaClient } from "../utils/database";
+import { ILikesRepository } from "../interfaces/repositories";
 
-export class LikeRepository {
+export class LikeRepository implements ILikesRepository<Likes> {
 
     async create(data: Likes): Promise<Likes> {
         try {

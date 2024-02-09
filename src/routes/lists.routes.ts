@@ -6,27 +6,27 @@ export const initListsRoutes = (): Router => {
 
     const listsController = new ListController();
 
-    router.post("/", listsController.create);
+    router.post("/", listsController.create.bind(listsController));
 
-    router.get("/", listsController.findAll);
+    router.get("/", listsController.findAll.bind(listsController));
 
-    router.get("/:id", listsController.findById);
+    router.get("/:id", listsController.findById.bind(listsController));
 
-    router.put("/:id", listsController.update);
+    router.put("/:id", listsController.update.bind(listsController));
 
-    router.delete("/:id", listsController.delete);
+    router.delete("/:id", listsController.delete.bind(listsController));
 
-    router.get("/:id/users", listsController.findUsers);
+    router.get("/:id/users", listsController.findUsers.bind(listsController));
 
-    router.post("/:id/users/:userId", listsController.addUser);
+    router.post("/:id/users/:userId", listsController.addUser.bind(listsController));
 
-    router.delete("/:id/users/:userId", listsController.deleteUser);
+    router.delete("/:id/users/:userId", listsController.deleteUser.bind(listsController));
 
-    router.post("/:id/follower", listsController.follow);
+    router.post("/:id/follower", listsController.follow.bind(listsController));
 
-    router.delete("/:id/follower/:userId", listsController.unfollow);
+    router.delete("/:id/follower/:userId", listsController.unfollow.bind(listsController));
 
-    router.get("/:id/follower", listsController.findFollowers);
+    router.get("/:id/follower", listsController.findFollowers.bind(listsController));
 
     return router;
 }

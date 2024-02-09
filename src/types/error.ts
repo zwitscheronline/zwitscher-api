@@ -5,6 +5,14 @@ export type Err = {
     status: HTTPCodes;
 };
 
+export class ErrorWithStatus extends Error {
+    status: HTTPCodes;
+    constructor(message: string, status: HTTPCodes) {
+        super(message);
+        this.status = status;
+    }
+}
+
 export const isErr = (obj: any): obj is Err => {
     return (obj as Err) !== undefined;
 }

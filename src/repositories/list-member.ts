@@ -1,8 +1,9 @@
 import { UsersInLists } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IListMemberRepository } from "../interfaces/repositories";
 
-export class ListMemberRepository {
+export class ListMemberRepository implements IListMemberRepository<UsersInLists> {
 
     async create(data: UsersInLists): Promise<UsersInLists> {
         try {

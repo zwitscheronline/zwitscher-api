@@ -1,8 +1,9 @@
 import { Bookmarks } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IBookmarkRepository } from "../interfaces/repositories";
 
-export class BookmarkRepository {
+export class BookmarkRepository implements IBookmarkRepository<Bookmarks> {
     async create(data: Bookmarks): Promise<Bookmarks> {
         try {
             return await prismaClient.bookmarks.create({

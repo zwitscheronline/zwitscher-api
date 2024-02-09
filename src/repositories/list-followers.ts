@@ -1,8 +1,9 @@
 import { ListFollowers } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
+import { IListFollowerRepository } from "../interfaces/repositories";
 
-export class ListFollowerRepository {
+export class ListFollowerRepository implements IListFollowerRepository<ListFollowers> {
     async create(data: ListFollowers): Promise<ListFollowers> {
         try {
             return await prismaClient.listFollowers.create({

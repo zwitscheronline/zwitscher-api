@@ -6,11 +6,11 @@ export const initBookmarkRoutes = (): Router => {
 
     const bookmarkController = new BookmarkController();
 
-    router.post("/", bookmarkController.create);
+    router.post("/", bookmarkController.create.bind(bookmarkController));
 
-    router.get("/", bookmarkController.findAll);
+    router.get("/", bookmarkController.findAll.bind(bookmarkController));
 
-    router.delete("/:id", bookmarkController.delete);
+    router.delete("/:id", bookmarkController.delete.bind(bookmarkController));
 
     return router;
 }
