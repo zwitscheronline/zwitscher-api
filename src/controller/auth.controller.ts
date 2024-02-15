@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { AuthService } from "../services/auth.service";
-import { ErrorWithStatus, isErr } from "../types/error";
+import { ErrorWithStatus } from "../types/error";
 
 export class AuthController {
   private readonly authService: AuthService;

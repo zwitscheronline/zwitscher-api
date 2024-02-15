@@ -1,5 +1,8 @@
 import { HTTPCodes } from "./http_codes.enum";
 
+/**
+ * @deprecated Intead throw ErrorWithStatus
+ */
 export type Err = {
     message: string;
     status: HTTPCodes;
@@ -13,6 +16,9 @@ export class ErrorWithStatus extends Error {
     }
 }
 
+/**
+ * @deprecated Use ErrorWithStatus instead. Err type shouldn't be used anymore.
+ */
 export const isErr = (obj: any): obj is Err => {
     return (obj as Err) !== undefined;
 }

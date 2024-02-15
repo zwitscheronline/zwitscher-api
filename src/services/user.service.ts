@@ -1,6 +1,5 @@
 import { User } from "@prisma/client";
 import { UserRepository } from "../repositories/users";
-import { UserCreationData } from "../types/user-data";
 import { compare, genSalt, hash } from "bcrypt";
 import { Err, ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
@@ -17,10 +16,11 @@ import {
 } from "../types/user_output";
 import { RequestOptions } from "../types/request_options";
 import { FollowerRepository } from "../repositories/followers";
-import { excludeFields } from "../utils/exclude";
 import { logger } from "../utils/logger";
+import { IUserService } from "../interfaces/services";
+import { UserCreationData } from "../types/user-data";
 
-export class UserService {
+export class UserService implements IUserService<User, UserOutput, UserOutputStrict> {
   private readonly EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
   private readonly PASSWORD_REGEX =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;

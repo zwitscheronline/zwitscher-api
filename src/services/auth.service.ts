@@ -1,6 +1,6 @@
 import { User } from "@prisma/client";
 import { UserRepository } from "../repositories/users";
-import { Err, ErrorWithStatus } from "../types/error";
+import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { LoginCredentials } from "../types/login_credentials";
 import { LoginResponse } from "../types/responses";
@@ -8,8 +8,9 @@ import { compare } from "bcrypt";
 import { AccessTokenData, RefreshTokenData } from "../types/token_data";
 import { sign, verify } from "jsonwebtoken";
 import { logger } from "../utils/logger";
+import { IAuthService } from "../interfaces/services";
 
-export class AuthService {
+export class AuthService implements IAuthService<LoginCredentials, LoginResponse, AccessTokenData> {
   private readonly userRepository: UserRepository;
 
   private readonly INVALID_CREDENTIALS_ERR = {

@@ -1,26 +1,23 @@
-import {PostRepository} from "../repositories/posts";
-import {RequestOptions} from "../types/request_options";
-import {UserOutputStrict} from "../types/user_output";
-import {Post} from "@prisma/client";
-import {Err} from "../types/error";
-import {HTTPCodes} from "../types/http_codes.enum";
+import { PostRepository } from "../repositories/posts";
+import { RequestOptions } from "../types/request_options";
+import { Post } from "@prisma/client";
+import { HTTPCodes } from "../types/http_codes.enum";
+import { IPostService } from "../interfaces/services";
+import { ErrorWithStatus } from "../types/error";
 
-export class PostService {
-    private readonly postRepository: PostRepository;
+export class PostService implements IPostService<Post[]> {
+  private readonly postRepository: PostRepository;
 
-    constructor(postRepository: PostRepository) {
-        this.postRepository = postRepository;
+  constructor(postRepository: PostRepository) {
+    this.postRepository = postRepository;
+  }
+
+  async findAll(options: RequestOptions): Promise<Post[]> {
+    try {
+      const posts = await this.postRepository.findAll(options);
+      return posts;
+    } catch (error) {
+      throw new ErrorWithStatus(`Error fetching posts: ${error}`, HTTPCodes.InternalServerError);
     }
-
-    async findAll(options: RequestOptions): Promise<Post[] | Err> {
-        try {
-            const posts = await this.postRepository.findAll(options);
-            return posts;
-        } catch (error) {
-            return {
-                message: "Unable to find posts",
-                status: HTTPCodes.InternalServerError,
-            };
-        }
-    }
+  }
 }
