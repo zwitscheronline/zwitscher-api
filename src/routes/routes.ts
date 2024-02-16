@@ -12,6 +12,8 @@ import { AuthService } from "../services/auth.service";
 import { PostService } from "../services/post.service";
 import { PostRepository } from "../repositories/posts";
 import { LikeRepository } from "../repositories/likes";
+import { BookmarkService } from "../services/bookmark.service";
+import { BookmarkRepository } from "../repositories/bookmarks";
 
 export const initRouting = (): Router => {
     const router = Router();
@@ -20,13 +22,15 @@ export const initRouting = (): Router => {
     const followRepo = new FollowerRepository();
     const postRepo = new PostRepository();
     const likeRepo = new LikeRepository();
+    const bookmarkRepo = new BookmarkRepository();
 
     const userService = new UserService(userRepo, followRepo);
     const authService = new AuthService(userRepo);
     const postService = new PostService(postRepo, userRepo, likeRepo);
+    const bookmarkService = new BookmarkService(bookmarkRepo, postRepo);
 
     router.use("/auth", initAuthRoutes(authService));
-    router.use("/bookmarks", initBookmarkRoutes());
+    router.use("/bookmarks", initBookmarkRoutes(bookmarkService));
     router.use("/groups", initGroupsRoutes());
     router.use("/lists", initListsRoutes());
     router.use("/posts", initPostRoutes(postService));

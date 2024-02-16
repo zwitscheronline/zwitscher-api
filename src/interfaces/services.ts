@@ -1,6 +1,8 @@
+import { Post } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { UserCreationData } from "../types/user-data";
 import { UserOutputStrict } from "../types/user_output";
+import { PostCreationData } from "../types/post-data";
 
 export interface IUserService<Input, Output, OutputStrict> {
     create(data: UserCreationData): Promise<Output>;
@@ -23,16 +25,22 @@ export interface IAuthService<Input, Output, TokenData> {
     getInformationFromAccessToken(token: string): TokenData;
 }
 
-export interface IPostService<Input, Output> {
-    create(data: Input): Promise<Output>;
+export interface IPostService {
+    create(data: PostCreationData): Promise<Post>;
     delete(postId: number, requesterId: number): Promise<void>;
-    findByID(id: number): Promise<Output>;
-    findAll(options: RequestOptions): Promise<Output[]>;
-    findChildrenOfPost(postId: number, options?: RequestOptions): Promise<Output[]>;
-    findParentPost(postId: number): Promise<Output>;
+    findByID(id: number): Promise<Post>;
+    findAll(options: RequestOptions): Promise<Post[]>;
+    findChildrenOfPost(postId: number, options?: RequestOptions): Promise<Post[]>;
+    findParentPost(postId: number): Promise<Post>;
     deleteAllOfUser(userId: number, requesterId: number): Promise<void>;
     createLike(postId: number, userId: number): Promise<void>;
     deleteLike(postId: number, userId: number): Promise<void>;
     findLikesOfPost(postId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
-    findPostsOfUser(userId: number): Promise<Output[]>;
+    findPostsOfUser(userId: number): Promise<Post[]>;
+}
+
+export interface IBookmarkService {
+    create(postId: number, userId: number): Promise<void>;
+    delete(postId: number, userId: number): Promise<void>;
+    findBookmarkedByUser(userId: number): Promise<Post[]>;
 }

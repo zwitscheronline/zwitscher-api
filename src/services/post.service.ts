@@ -1,19 +1,17 @@
-import { PostRepository } from "../repositories/posts";
 import { RequestOptions } from "../types/request_options";
-import { Post } from "@prisma/client";
+import { Likes, Post, User } from "@prisma/client";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { IPostService } from "../interfaces/services";
 import { ErrorWithStatus } from "../types/error";
 import { PostCreationData } from "../types/post-data";
-import { UserRepository } from "../repositories/users";
-import { LikeRepository } from "../repositories/likes";
 import { UserOutputStrict, toUserOutputStrict } from "../types/user_output";
+import { ILikesRepository, IPostRepository, IUserRepository } from "../interfaces/repositories";
 
-export class PostService implements IPostService<PostCreationData, Post> {
+export class PostService implements IPostService {
   constructor(
-    private postRepository: PostRepository,
-    private userRepository: UserRepository,
-    private likeRepository: LikeRepository
+    private postRepository: IPostRepository<Post>,
+    private userRepository: IUserRepository<User>,
+    private likeRepository: ILikesRepository<Likes>
   ) {}
 
   private async isValidUserID(id: number): Promise<boolean> {
@@ -270,11 +268,7 @@ export class PostService implements IPostService<PostCreationData, Post> {
     try {
       const likes = await this.likeRepository.findAllOfPost(postId, options);
 
-      const ids: number[] = [];
-
-      for (let like of likes) {
-        ids.push(like.userId);
-      }
+      const ids: number[] = likes.map((like) => like.userId);
 
       const users = await this.userRepository.findAll({ ids });
       const output = toUserOutputStrict(users);
@@ -312,11 +306,7 @@ export class PostService implements IPostService<PostCreationData, Post> {
     try {
       const likes = await this.likeRepository.findAllOfUser(userId);
 
-      const ids: number[] = [];
-
-      for (let like of likes) {
-        ids.push(like.postId);
-      }
+      const ids: number[] = likes.map((like) => like.postId);
 
       return await this.postRepository.findAll({ ids });
     } catch (error) {

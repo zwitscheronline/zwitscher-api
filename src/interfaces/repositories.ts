@@ -17,9 +17,9 @@ interface IPostRepository<T> {
     update(data: T): Promise<T>;
     delete(id: number): Promise<void>;
     deleteAllOfUser(userId: number): Promise<void>;
-    findAll(options: RequestOptions): Promise<T[]>;
-    findAllOfUser(userId: number, options: RequestOptions): Promise<T[]>;
-    findChildrenOfPost(postId: number, options: RequestOptions): Promise<T[]>;
+    findAll(options: RequestOptions & { ids?: number[] }): Promise<T[]>;
+    findAllOfUser(userId: number, options?: RequestOptions): Promise<T[]>;
+    findChildrenOfPost(postId: number, options?: RequestOptions): Promise<T[]>;
     findParentOfPost(postId: number): Promise<T|null>;
     findById(id: number): Promise<T|null>;
 }
@@ -55,8 +55,8 @@ interface ILikesRepository<T> {
     delete(userId: number, postId: number): Promise<void>;
     deleteAll(postId: number): Promise<void>;
     findWithPostAndUser(postId: number, userId: number): Promise<T|null>;
-    findAllOfUser(userId: number, options: RequestOptions): Promise<T[]>;
-    findAllOfPost(postId: number, options: RequestOptions): Promise<T[]>;
+    findAllOfUser(userId: number, options?: RequestOptions): Promise<T[]>;
+    findAllOfPost(postId: number, options?: RequestOptions): Promise<T[]>;
 }
 
 interface IJoinRequestRepository<T> {
