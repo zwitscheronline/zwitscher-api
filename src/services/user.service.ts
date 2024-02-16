@@ -26,16 +26,10 @@ export class UserService implements IUserService<User, UserOutput, UserOutputStr
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   private readonly USER_TAG_REGEX = /^[\w\d]{4,}$/;
 
-  private readonly userRepository: UserRepository;
-  private readonly followingsRepository: FollowerRepository;
-
   constructor(
-    userRepository: UserRepository,
-    followingsRepository: FollowerRepository
-  ) {
-    this.userRepository = userRepository;
-    this.followingsRepository = followingsRepository;
-  }
+    private userRepository: UserRepository,
+    private followingsRepository: FollowerRepository,
+  ) {}
 
   private async isValidEmail(email: string): Promise<Err | null> {
     if (!this.EMAIL_REGEX.test(email)) {

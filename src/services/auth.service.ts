@@ -34,7 +34,7 @@ export class AuthService implements IAuthService<LoginCredentials, LoginResponse
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-          expiresIn: "15m",
+          expiresIn: "900000",
           subject: data.sub,
         }
       );
@@ -55,7 +55,7 @@ export class AuthService implements IAuthService<LoginCredentials, LoginResponse
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-          expiresIn: "7d",
+          expiresIn: "604800000",
           subject: data.sub,
         }
       );

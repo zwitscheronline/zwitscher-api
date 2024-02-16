@@ -1,3 +1,4 @@
+import { PostCreationData } from "../types/post-data";
 import { RequestOptions } from "../types/request_options";
 import { UserCreationData } from "../types/user-data";
 
@@ -12,10 +13,10 @@ interface IUserRepository<T> {
 }
 
 interface IPostRepository<T> {
-    create(data: T): Promise<T>;
+    create(data: PostCreationData): Promise<T>;
     update(data: T): Promise<T>;
     delete(id: number): Promise<void>;
-    deleteAll(userId: number): Promise<void>;
+    deleteAllOfUser(userId: number): Promise<void>;
     findAll(options: RequestOptions): Promise<T[]>;
     findAllOfUser(userId: number, options: RequestOptions): Promise<T[]>;
     findChildrenOfPost(postId: number, options: RequestOptions): Promise<T[]>;

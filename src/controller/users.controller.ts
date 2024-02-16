@@ -7,15 +7,14 @@ import { User } from "@prisma/client";
 import { AuthService } from "../services/auth.service";
 import { RequestOptions } from "../types/request_options";
 import { UserOutputStrict } from "../types/user_output";
+import { PostService } from "../services/post.service";
 
 export class UserController {
   constructor(
     private userService: UserService,
-    private authService: AuthService
-  ) {
-    this.userService = userService;
-    this.authService = authService;
-  }
+    private authService: AuthService,
+    private postService: PostService
+  ) {}
 
   async create(req: Request, res: Response) {
     try {
@@ -201,10 +200,12 @@ export class UserController {
   }
 
   async findPosts(req: Request, res: Response) {
+    const userId = Number(req.params.id);
+
     try {
-      return res.status(HTTPCodes.Ok).json({
-        message: "Not yet implemented",
-      });
+      const posts = await this.postService.findPostsOfUser(userId);
+
+      return res.status(HTTPCodes.Ok).json(posts);
     } catch (error) {
       if (error instanceof ErrorWithStatus) {
         return res.status(error.status).json({
@@ -301,10 +302,12 @@ export class UserController {
   }
 
   async findLikes(req: Request, res: Response) {
+    const userId = Number(req.params.id);
+
     try {
-      return res.status(HTTPCodes.Ok).json({
-        message: "Not yet implemented",
-      });
+      const likes = await this.postService.findLikesOfPost(userId);
+
+      return res.status(HTTPCodes.Ok).json(likes);
     } catch (error) {
       if (error instanceof ErrorWithStatus) {
         return res.status(error.status).json({

@@ -61,9 +61,9 @@ export class LikeRepository implements ILikesRepository<Likes> {
         }
     }
 
-    async findAllOfUser(userId: number, options: RequestOptions): Promise<Likes[]> {
-        const page = options.page || 1;
-        const entriesPerPage = options.entriesPerPage || 25;
+    async findAllOfUser(userId: number, options?: RequestOptions): Promise<Likes[]> {
+        const page = options?.page || 1;
+        const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
             return await prismaClient.likes.findMany({
@@ -81,9 +81,9 @@ export class LikeRepository implements ILikesRepository<Likes> {
         }
     }
 
-    async findAllOfPost(postId: number, options: RequestOptions): Promise<Likes[]> {
-        const page = options.page || 1;
-        const entriesPerPage = options.entriesPerPage || 25;
+    async findAllOfPost(postId: number, options?: RequestOptions): Promise<Likes[]> {
+        const page = options?.page || 1;
+        const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
             return await prismaClient.likes.findMany({

@@ -2,13 +2,17 @@ import { Post } from "@prisma/client";
 import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
 import { IPostRepository } from "../interfaces/repositories";
+import { PostCreationData } from "../types/post-data";
 
 export class PostRepository implements IPostRepository<Post> {
 
-    async create(data: Post): Promise<Post> {
+    async create(data: PostCreationData): Promise<Post> {
         try {
             return await prismaClient.post.create({
-                data,
+                data: {
+                    createdAt: new Date(),
+                    ...data,
+                },
             });
         } catch (error) {
             throw error;
@@ -43,7 +47,7 @@ export class PostRepository implements IPostRepository<Post> {
         }
     }
 
-    async deleteAll(userId: number): Promise<void> {
+    async deleteAllOfUser(userId: number): Promise<void> {
         try {
             await prismaClient.post.updateMany({
                 where: {
@@ -58,32 +62,44 @@ export class PostRepository implements IPostRepository<Post> {
         }
     }
 
-    async findAll(options: RequestOptions): Promise<Post[]> {
-
+    async findAll(options: RequestOptions & { ids?: number[] }): Promise<Post[]> {
         const page = options.page || 1;
         const entriesPerPage = options.entriesPerPage || 25;
+
         try {
-            return await prismaClient.post.findMany({
-                where: {
-                    deletedAt: null,
-                },
-                take: entriesPerPage,
-                skip: (page - 1) * entriesPerPage,
-                orderBy: {
-                    createdAt: "desc",
-                },
-                include: {
-                    originalPost: true,
-                }
-            });
+            if (options.orderByField) {
+                return await prismaClient.post.findMany({
+                    where: {
+                        deletedAt: null,
+                        ...(options.ids && { id: { in: options.ids } }),
+                    },
+                    take: entriesPerPage,
+                    skip: (page - 1) * entriesPerPage,
+                    orderBy: {
+                        [options.orderByField]: options.orderBy,
+                    },
+                });
+            } else {
+                return await prismaClient.post.findMany({
+                    where: {
+                        deletedAt: null,
+                        ...(options.ids && { id: { in: options.ids } }),
+                    },
+                    take: entriesPerPage,
+                    skip: (page - 1) * entriesPerPage,
+                    orderBy: {
+                        createdAt: "desc",
+                    }
+                });
+            }
         } catch (error) {
             throw error;
         }
     }
 
-    async findAllOfUser(userId: number, options: RequestOptions): Promise<Post[]> {
-        const page = options.page || 1;
-        const entriesPerPage = options.entriesPerPage || 25;
+    async findAllOfUser(userId: number, options?: RequestOptions): Promise<Post[]> {
+        const page = options?.page || 1;
+        const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
             return await prismaClient.post.findMany({
@@ -105,9 +121,9 @@ export class PostRepository implements IPostRepository<Post> {
         }
     }
 
-    async findChildrenOfPost(postId: number, options: RequestOptions): Promise<Post[]> {
-        const page = options.page || 1;
-        const entriesPerPage = options.entriesPerPage || 25;
+    async findChildrenOfPost(postId: number, options?: RequestOptions): Promise<Post[]> {
+        const page = options?.page || 1;
+        const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
             return await prismaClient.post.findMany({

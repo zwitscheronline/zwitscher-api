@@ -3,11 +3,12 @@ import { UserController } from "../controller/users.controller";
 import { UserService } from "../services/user.service";
 import { AuthService } from "../services/auth.service";
 import { authenticate } from "../middleware/auth.middleware";
+import { PostService } from "../services/post.service";
 
-export const initUserRoutes = (userService: UserService, authService: AuthService): Router => {
+export const initUserRoutes = (userService: UserService, authService: AuthService, postService: PostService): Router => {
     const router = Router();
 
-    const userController = new UserController(userService, authService);
+    const userController = new UserController(userService, authService, postService);
 
     router.post("/", userController.create.bind(userController));
 
