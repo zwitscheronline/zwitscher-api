@@ -56,7 +56,7 @@ export class UserController {
         | "tokenVersion"
       > = req.body;
 
-      const userId = req.body.id;
+      const userId = parseInt(req.params.id);
       if (userId === undefined || userId < 1) {
         return res.status(HTTPCodes.BadRequest).json({
           error: "Invalid id",
@@ -64,25 +64,17 @@ export class UserController {
       }
       data.id = userId;
 
-      const token = req.headers.authorization;
-      if (token === undefined) {
-        return res.status(HTTPCodes.Unauthorized).json({
-          error: "You must be logged in to update your information",
-        });
-      }
-
-      const accessTokenData =
-        this.authService.getInformationFromAccessToken(token);
+      const requesterId = parseInt(req.params.requesterId);
 
       const returning = await this.userService.update(
         data,
-        Number(accessTokenData.sub)
+        requesterId
       );
 
       return res.status(HTTPCodes.Ok).json({
         user: returning,
       });
-    } catch (error: ErrorWithStatus | any) {
+    } catch (error) {
       if (error instanceof ErrorWithStatus) {
         return res.status(error.status).json({
           error: error.message,
@@ -97,28 +89,19 @@ export class UserController {
 
   async delete(req: Request, res: Response) {
     try {
-      const userId = req.body.id;
+      const userId = parseInt(req.params.id);
       if (userId === undefined || Number(userId) < 1) {
         return res.status(HTTPCodes.BadRequest).json({
           error: "Invalid id",
         });
       }
 
-      const token = req.headers.authorization;
-      if (token === undefined) {
-        return res.status(HTTPCodes.Unauthorized).json({
-          error: "You must be logged in to delete your account",
-        });
-      }
-
-      const accessTokenData =
-        this.authService.getInformationFromAccessToken(token);
-
+      const requesterId = parseInt(req.params.requesterId);
       //TODO: delete likes, posts, groups, lists, etc
 
       await this.userService.delete(
-        Number(userId),
-        Number(accessTokenData.sub)
+        userId,
+        requesterId
       );
 
       return res.status(HTTPCodes.Ok).json({
@@ -168,19 +151,11 @@ export class UserController {
     try {
       const id = Number(req.params.id);
 
-      const token = req.headers.authorization;
-      if (token === undefined) {
-        return res.status(HTTPCodes.Unauthorized).json({
-          error: "You must be logged in to get user information",
-        });
-      }
-
-      const accessTokenData =
-        this.authService.getInformationFromAccessToken(token);
+      const requesterId = parseInt(req.params.requesterId);
 
       const returning = await this.userService.findById(
         id,
-        Number(accessTokenData.sub)
+        requesterId
       );
 
       return res.status(HTTPCodes.Ok).json({
@@ -221,11 +196,11 @@ export class UserController {
 
   async findFollowers(req: Request, res: Response) {
     try {
-      const id = Number(req.params.id);
+      const id = parseInt(req.params.id);
 
       const requestOptions: RequestOptions = {
-        entriesPerPage: Number(req.query.limit) ?? undefined,
-        page: Number(req.query.page) ?? undefined,
+        entriesPerPage: parseInt(req.query.limit as string) ?? undefined,
+        page: parseInt(req.query.page as string) ?? undefined,
         orderBy: req.query.orderBy as string | undefined,
         orderByField: req.query.orderField as string | undefined,
       };
@@ -253,11 +228,11 @@ export class UserController {
 
   async findFollowing(req: Request, res: Response) {
     try {
-      const id = Number(req.params.id);
+      const id = parseInt(req.params.id);
 
       const requestOptions: RequestOptions = {
-        entriesPerPage: Number(req.query.limit) ?? undefined,
-        page: Number(req.query.page) ?? undefined,
+        entriesPerPage: parseInt(req.query.limit as string) ?? undefined,
+        page: parseInt(req.query.page as string) ?? undefined,
         orderBy: req.query.orderBy as string | undefined,
         orderByField: req.query.orderField as string | undefined,
       };
@@ -357,19 +332,11 @@ export class UserController {
 
   async follow(req: Request, res: Response) {
     try {
-      const userId = Number(req.params.id);
+      const userId = parseInt(req.params.id);
 
-      const token = req.headers.authorization;
-      if (token === undefined) {
-        return res.status(HTTPCodes.Unauthorized).json({
-          error: "You must be logged in to follow a user",
-        });
-      }
+      const requesterId = parseInt(req.params.requesterId);
 
-      const accessTokenData =
-        this.authService.getInformationFromAccessToken(token);
-
-      await this.userService.follow(userId, Number(accessTokenData.sub));
+      await this.userService.follow(userId, requesterId);
 
       return res.status(HTTPCodes.Ok).json({
         message: "User followed",
@@ -389,19 +356,11 @@ export class UserController {
 
   async unfollow(req: Request, res: Response) {
     try {
-      const userId = Number(req.params.id);
+      const userId = parseInt(req.params.id);
 
-      const token = req.headers.authorization;
-      if (token === undefined) {
-        return res.status(HTTPCodes.Unauthorized).json({
-          error: "You must be logged in to unfollow a user",
-        });
-      }
+      const requesterId = parseInt(req.params.requesterId);
 
-      const accessTokenData =
-        this.authService.getInformationFromAccessToken(token);
-
-      await this.userService.unfollow(userId, Number(accessTokenData.sub));
+      await this.userService.unfollow(userId, requesterId);
 
       return res.status(HTTPCodes.Ok).json({
         message: "User unfollowed",

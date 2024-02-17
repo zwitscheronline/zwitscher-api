@@ -20,7 +20,7 @@ import { logger } from "../utils/logger";
 import { IUserService } from "../interfaces/services";
 import { UserCreationData } from "../types/user-data";
 
-export class UserService implements IUserService<User, UserOutput, UserOutputStrict> {
+export class UserService implements IUserService {
   private readonly EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
   private readonly PASSWORD_REGEX =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;

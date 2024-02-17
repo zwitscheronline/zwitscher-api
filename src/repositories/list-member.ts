@@ -61,4 +61,19 @@ export class ListMemberRepository implements IListMemberRepository<UsersInLists>
             throw error;
         }
     }
+
+    async findByUserAndList(userId: number, listId: number): Promise<UsersInLists | null> {
+        try {
+            return await prismaClient.usersInLists.findUnique({
+                where: {
+                    userId_listId: {
+                        userId,
+                        listId,
+                    },
+                },
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
 }

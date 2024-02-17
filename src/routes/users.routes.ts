@@ -12,9 +12,9 @@ export const initUserRoutes = (userService: UserService, authService: AuthServic
 
     router.post("/", userController.create.bind(userController));
 
-    router.put("/:id", authenticate, userController.update.bind(userController));
+    router.put("/:id", authenticate(userService), userController.update.bind(userController));
 
-    router.delete("/:id", authenticate, userController.delete.bind(userController));
+    router.delete("/:id", authenticate(userService), userController.delete.bind(userController));
 
     router.get("/", userController.findAll.bind(userController));
 
@@ -32,9 +32,9 @@ export const initUserRoutes = (userService: UserService, authService: AuthServic
 
     router.get("/:id/groups", userController.findGroups.bind(userController));
 
-    router.get("/:id/join-requests", authenticate, userController.findGroupJoinRequests.bind(userController));
+    router.get("/:id/join-requests", authenticate(userService), userController.findGroupJoinRequests.bind(userController));
 
-    router.post("/:id/follower", authenticate, userController.follow.bind(userController));
+    router.post("/:id/follower", authenticate(userService), userController.follow.bind(userController));
 
     router.delete("/:id/follower/:followerId", authenticate, userController.unfollow.bind(userController));
 

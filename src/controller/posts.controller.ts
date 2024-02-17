@@ -9,7 +9,7 @@ export class PostController {
 
   async create(req: Request, res: Response) {
     const data: PostCreationData = req.body;
-    data.authorId = parseInt(req.params.userId);
+    data.authorId = parseInt(req.params.requesterId);
 
     try {
         const post = await this.postService.create(data);
@@ -57,7 +57,7 @@ export class PostController {
   async delete(req: Request, res: Response) {
     const postId = parseInt(req.params.id);
 
-    const requesterId = parseInt(req.params.userId);
+    const requesterId = parseInt(req.params.requesterId);
 
     try {
         await this.postService.delete(postId, requesterId);
@@ -117,7 +117,7 @@ export class PostController {
   async like(req: Request, res: Response) {
     try {
         const postId = parseInt(req.params.id);
-        const requesterId = parseInt(req.params.userId);
+        const requesterId = parseInt(req.params.requesterId);
 
         await this.postService.createLike(postId, requesterId);
         return res.status(HTTPCodes.Created).send("Post liked");
@@ -132,7 +132,7 @@ export class PostController {
   async unlike(req: Request, res: Response) {
     try {
         const postId = parseInt(req.params.id);
-        const requesterId = parseInt(req.params.userId);
+        const requesterId = parseInt(req.params.requesterId);
 
         await this.postService.deleteLike(postId, requesterId);
         return res.status(HTTPCodes.Ok).send("Post unliked");

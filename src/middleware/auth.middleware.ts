@@ -4,12 +4,10 @@ import { HTTPCodes } from "../types/http_codes.enum";
 import { AccessTokenData } from "../types/token_data";
 import { IUserService } from "../interfaces/services";
 
-export const authenticate = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  (userService: IUserService) => {
+export function authenticate(
+  userService: IUserService
+) {
+  return function(req: Request, res: Response, next: NextFunction) {
     const token = req.headers.authorization;
 
     if (!token) {
@@ -43,7 +41,7 @@ export const authenticate = (
         throw new Error("User not found");
       }
 
-      req.params.userId = tokenData.sub?.toString();
+      req.params.requesterId = tokenData.sub?.toString();
 
       next();
     } catch (error) {

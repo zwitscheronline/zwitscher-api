@@ -1,3 +1,4 @@
+import { ListCreationData } from "../types/list-data";
 import { PostCreationData } from "../types/post-data";
 import { RequestOptions } from "../types/request_options";
 import { UserCreationData } from "../types/user-data";
@@ -25,8 +26,8 @@ interface IPostRepository<T> {
 }
 
 interface IListRepository<T> {
-    create(data: T): Promise<T>;
-    update(data: T): Promise<T>;
+    create(data: ListCreationData): Promise<T>;
+    update(data: Partial<T>): Promise<T>;
     delete(id: number): Promise<void>;
     deleteAll(userId: number): Promise<void>;
     findAll(options: RequestOptions): Promise<T[]>;
@@ -39,6 +40,7 @@ interface IListMemberRepository<T> {
     delete(userId: number, listId: number): Promise<void>;
     deleteAll(listId: number): Promise<void>;
     findAll(listId: number, options: RequestOptions): Promise<T[]>;
+    findByUserAndList(userId: number, listId: number): Promise<T|null>;
 }
 
 interface IListFollowerRepository<T> {
@@ -48,6 +50,7 @@ interface IListFollowerRepository<T> {
     deleteAllByUserId(userId: number): Promise<void>;
     findAll(listId: number, options: RequestOptions): Promise<T[]>;
     findAllByUserId(userId: number, options: RequestOptions): Promise<T[]>;
+    findConnection(userId: number, listId: number): Promise<T|null>;
 }
 
 interface ILikesRepository<T> {

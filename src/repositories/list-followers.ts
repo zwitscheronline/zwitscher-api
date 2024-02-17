@@ -92,4 +92,17 @@ export class ListFollowerRepository implements IListFollowerRepository<ListFollo
             throw error;
         }
     }
+
+    async findConnection(userId: number, listId: number): Promise<ListFollowers | null> {
+        try {
+            return await prismaClient.listFollowers.findFirst({
+                where: {
+                    listId,
+                    followerId: userId,
+                }
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
 }

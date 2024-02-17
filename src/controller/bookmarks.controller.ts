@@ -11,7 +11,7 @@ export class BookmarkController {
     async create(req: Request, res: Response) {
         try {
             const postId = parseInt(req.params.postId);
-            const userId = parseInt(req.params.userId);
+            const userId = parseInt(req.params.requesterId);
             await this.bookmarkService.create(postId, userId);
             return res.status(HTTPCodes.Created).send("Bookmark created");
         } catch (error) {
@@ -24,7 +24,7 @@ export class BookmarkController {
 
     async findAll(req: Request, res: Response) {
         try {
-            const userId = parseInt(req.params.userId);
+            const userId = parseInt(req.params.requesterId);
             const bookmarks = await this.bookmarkService.findBookmarkedByUser(userId);
             return res.status(HTTPCodes.Ok).json(bookmarks);
         } catch (error) {
@@ -38,7 +38,7 @@ export class BookmarkController {
     async delete(req: Request, res: Response) {
         try {
             const postId = parseInt(req.params.postId);
-            const userId = parseInt(req.params.userId);
+            const userId = parseInt(req.params.requesterId);
             await this.bookmarkService.delete(postId, userId);
             return res.status(HTTPCodes.Ok).send("Bookmark deleted");
         } catch (error) {

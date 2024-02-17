@@ -2,12 +2,16 @@ import { Lists } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { prismaClient } from "../utils/database";
 import { IListRepository } from "../interfaces/repositories";
+import { ListCreationData } from "../types/list-data";
 
 export class ListRepository implements IListRepository<Lists> {
-    async create(data: Lists): Promise<Lists> {
+    async create(data: ListCreationData): Promise<Lists> {
         try {
             return await prismaClient.lists.create({
-                data,
+                data: {
+                    createdAt: new Date(),
+                    ...data
+                },
             });
         } catch (error) {
             throw error;
@@ -59,7 +63,6 @@ export class ListRepository implements IListRepository<Lists> {
             return await prismaClient.lists.findMany({
                 where: {
                     deletedAt: null,
-                    isPrivate: false,
                 },
                 skip: (page - 1) * limit,
                 take: limit,
