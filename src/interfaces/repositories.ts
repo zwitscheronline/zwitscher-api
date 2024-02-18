@@ -1,3 +1,4 @@
+import { GroupCreationData } from "../types/group-data";
 import { ListCreationData } from "../types/list-data";
 import { PostCreationData } from "../types/post-data";
 import { RequestOptions } from "../types/request_options";
@@ -23,6 +24,8 @@ interface IPostRepository<T> {
     findChildrenOfPost(postId: number, options?: RequestOptions): Promise<T[]>;
     findParentOfPost(postId: number): Promise<T|null>;
     findById(id: number): Promise<T|null>;
+    findAllOfGroup(groupId: number, options?: RequestOptions): Promise<T[]>;
+    deleteAllOfGroup(groupId: number): Promise<void>;
 }
 
 interface IListRepository<T> {
@@ -72,8 +75,8 @@ interface IJoinRequestRepository<T> {
 }
 
 interface IGroupRepository<T> {
-    create(data: T): Promise<T>;
-    update(data: T): Promise<T>;
+    create(data: GroupCreationData): Promise<T>;
+    update(data: Partial<T>): Promise<T>;
     delete(id: number): Promise<void>;
     deleteAll(userId: number): Promise<void>;
     findAll(options: RequestOptions): Promise<T[]>;
@@ -87,6 +90,7 @@ interface IGroupMemberRepository<T> {
     deleteAllByUserId(userId: number): Promise<void>;
     findAll(groupId: number, options: RequestOptions): Promise<T[]>;
     findAllByUserId(userId: number, options: RequestOptions): Promise<T[]>;
+    findByUserAndGroup(userId: number, groupId: number): Promise<T|null>;
 }
 
 interface IFollowerRepository<T> {

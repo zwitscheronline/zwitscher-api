@@ -92,4 +92,17 @@ export class GroupMemberRepository implements IGroupMemberRepository<UsersInGrou
             throw error;
         }
     }
+
+    async findByUserAndGroup(userId: number, groupId: number): Promise<UsersInGroups | null> {
+        try {
+            return await prismaClient.usersInGroups.findFirst({
+                where: {
+                    userId,
+                    groupId
+                }
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
 }

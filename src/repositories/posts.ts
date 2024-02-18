@@ -178,4 +178,43 @@ export class PostRepository implements IPostRepository<Post> {
             throw error;
         }
     }
+
+    async findAllOfGroup(groupId: number, options?: RequestOptions): Promise<Post[]> {
+        const page = options?.page || 1;
+        const entriesPerPage = options?.entriesPerPage || 25;
+
+        try {
+            return await prismaClient.post.findMany({
+                where: {
+                    groupId,
+                    deletedAt: null,
+                },
+                take: entriesPerPage,
+                skip: (page - 1) * entriesPerPage,
+                orderBy: {
+                    createdAt: "desc",
+                },
+                include: {
+                    originalPost: true,
+                }
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteAllOfGroup(groupId: number): Promise<void> {
+        try {
+            await prismaClient.post.updateMany({
+                where: {
+                    groupId,
+                },
+                data: {
+                    deletedAt: new Date(),
+                },
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
 }

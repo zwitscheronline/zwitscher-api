@@ -2,9 +2,10 @@ import { Groups } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { prismaClient } from "../utils/database";
 import { IGroupRepository } from "../interfaces/repositories";
+import { GroupCreationData } from "../types/group-data";
 
 export class GroupRepository implements IGroupRepository<Groups> {
-    async create(data: Groups): Promise<Groups> {
+    async create(data: GroupCreationData): Promise<Groups> {
         try {
             return await prismaClient.groups.create({
                 data,

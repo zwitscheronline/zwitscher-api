@@ -1,57 +1,306 @@
 import { Request, Response } from "express";
+import { IGroupService } from "../interfaces/services";
+import { GroupCreationData } from "../types/group-data";
+import { ErrorWithStatus } from "../types/error";
+import { HTTPCodes } from "../types/http_codes.enum";
+import { Groups } from "@prisma/client";
 
 export class GroupController {
-    constructor() {}
+  constructor(private groupService: IGroupService) {}
 
-    create(req: Request, res: Response) {
-        res.send("create group");
-    }
+  async create(req: Request, res: Response) {
+    const data: GroupCreationData = req.body;
 
-    findAll(req: Request, res: Response) {
-        res.send("get all groups");
-    }
+    try {
+      const requesterId = parseInt(req.params.requesterId);
 
-    findById(req: Request, res: Response) {
-        res.send("get one group");
-    }
+      data.creatorId = requesterId;
 
-    update(req: Request, res: Response) {
-        res.send("update group");
-    }
+      const group = await this.groupService.create(data);
 
-    delete(req: Request, res: Response) {
-        res.send("delete group");
+      return res.status(HTTPCodes.Created).json(group);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
     }
+  }
 
-    findMembers(req: Request, res: Response) {
-        res.send("get all members");
-    }
+  async findAll(req: Request, res: Response) {
+    try {
+      const limit = parseInt(req.query.limit as string) || 25;
+      const page = parseInt(req.query.page as string) || 0;
+      const orderBy = req.query.orderBy as string;
+      const orderByField = req.query.orderByField as string;
 
-    addMember(req: Request, res: Response) {
-        res.send("add member");
-    }
+      const requesterId = parseInt(req.params.requesterId);
 
-    deleteMember(req: Request, res: Response) {
-        res.send("delete member");
-    }
+      const groups = await this.groupService.findAll(requesterId, {
+        entriesPerPage: limit,
+        page,
+        orderBy,
+        orderByField,
+      });
 
-    createJoinRequest(req: Request, res: Response) {
-        res.send("create join request");
+      return res.status(HTTPCodes.Ok).json(groups);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
     }
+  }
 
-    findJoinRequests(req: Request, res: Response) {
-        res.send("get all join requests");
-    }
+  async findById(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
 
-    deleteJoinRequest(req: Request, res: Response) {
-        res.send("delete join request");
+      const group = await this.groupService.findById(groupId, requesterId);
+      return res.status(HTTPCodes.Ok).json(group);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
     }
+  }
 
-    updateJoinRequest(req: Request, res: Response) {
-        res.send("update join request");
-    }
+  async update(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+      const data: Partial<Groups> = req.body;
 
-    findPosts(req: Request, res: Response) {
-        res.send("get all posts");
+      data.id = groupId;
+
+      const group = await this.groupService.update(data, requesterId);
+      return res.status(HTTPCodes.Ok).json(group);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
     }
+  }
+
+  async delete(req: Request, res: Response) {
+    try {
+      const groupId = parseInt(req.params.id);
+      const requesterId = parseInt(req.params.requesterId);
+
+      await this.groupService.deleteAllPosts(groupId, requesterId);
+
+      await this.groupService.delete(groupId, requesterId);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async findMembers(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+
+      const limit = parseInt(req.query.limit as string) || 25;
+      const page = parseInt(req.query.page as string) || 0;
+      const orderBy = req.query.orderBy as string;
+      const orderByField = req.query.orderByField as string;
+
+      const members = await this.groupService.findMembers(
+        groupId,
+        requesterId,
+        {
+          entriesPerPage: limit,
+          page,
+          orderBy,
+          orderByField,
+        }
+      );
+
+      return res.status(HTTPCodes.Ok).json(members);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async deleteMember(req: Request, res: Response) {
+    try {
+      const groupId = parseInt(req.params.id);
+      const requesterId = parseInt(req.params.requesterId);
+      const memberId = parseInt(req.params.userId);
+
+      await this.groupService.removeMember(groupId, memberId, requesterId);
+
+      return res.status(HTTPCodes.Ok).send("Member removed");
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async createJoinRequest(req: Request, res: Response) {
+    try {
+      const groupId = parseInt(req.params.id);
+
+      const requesterId = parseInt(req.params.requesterId);
+
+      const joinRequest = await this.groupService.createJoinRequest(
+        groupId,
+        requesterId
+      );
+
+      return res.status(HTTPCodes.Created).json(joinRequest);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async findJoinRequests(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+
+      const limit = parseInt(req.query.limit as string) || 25;
+      const page = parseInt(req.query.page as string) || 0;
+      const orderBy = req.query.orderBy as string;
+      const orderByField = req.query.orderByField as string;
+
+      const joinRequests = await this.groupService.findJoinRequests(
+        groupId,
+        requesterId,
+        {
+          entriesPerPage: limit,
+          page,
+          orderBy,
+          orderByField,
+        }
+      );
+
+      return res.status(HTTPCodes.Ok).json(joinRequests);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async deleteJoinRequest(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+
+      await this.groupService.deleteJoinRequest(
+        groupId,
+        requesterId,
+        requesterId
+      );
+
+      return res.status(HTTPCodes.Ok).send("Join request deleted");
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async acceptJoinRequest(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
+
+      await this.groupService.acceptJoinRequest(groupId, userId, requesterId);
+
+      return res.status(HTTPCodes.Ok).send("Join request accepted");
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async rejectJoinRequest(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
+
+      await this.groupService.rejectJoinRequest(groupId, userId, requesterId);
+
+      return res.status(HTTPCodes.Ok).send("Join request rejected");
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
+
+  async findPosts(req: Request, res: Response) {
+    try {
+      const requesterId = parseInt(req.params.requesterId);
+      const groupId = parseInt(req.params.id);
+
+      const limit = parseInt(req.query.limit as string) || 25;
+      const page = parseInt(req.query.page as string) || 1;
+      const orderBy = req.query.orderBy as string;
+      const orderByField = req.query.orderByField as string;
+
+      const posts = await this.groupService.findPosts(groupId, requesterId, {
+        entriesPerPage: limit,
+        page,
+        orderBy,
+        orderByField,
+      });
+
+      return res.status(HTTPCodes.Ok).json(posts);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        return res.status(error.status).send(error.message);
+      }
+      return res
+        .status(HTTPCodes.InternalServerError)
+        .send("Internal Server Error");
+    }
+  }
 }

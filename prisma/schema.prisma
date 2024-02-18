@@ -40,6 +40,7 @@ model Post {
   authorId       Int
   parentPostId   Int?
   originalPostId Int?
+  groupId        Int?
   isRetweet      Boolean     @default(false)
   createdAt      DateTime    @default(now())
   deletedAt      DateTime?
@@ -51,6 +52,7 @@ model Post {
   retweets       Post[]      @relation("Retweets")
   parentPost     Post?       @relation("Replies", fields: [parentPostId], references: [id])
   replies        Post[]      @relation("Replies")
+  group          Groups?     @relation(fields: [groupId], references: [id])
 }
 
 model Likes {
@@ -129,6 +131,7 @@ model Groups {
   creator       User            @relation(fields: [creatorId], references: [id])
   joinRequests  JoinRequests[]
   usersInGroups UsersInGroups[]
+  posts         Post[]
 }
 
 model UsersInGroups {

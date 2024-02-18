@@ -1,9 +1,10 @@
-import { Lists, Post, User } from "@prisma/client";
+import { Groups, JoinRequests, Lists, Post, User } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { UserCreationData } from "../types/user-data";
 import { UserOutput, UserOutputStrict } from "../types/user_output";
 import { PostCreationData } from "../types/post-data";
 import { ListCreationData } from "../types/list-data";
+import { GroupCreationData } from "../types/group-data";
 
 export interface IUserService {
     create(data: UserCreationData): Promise<UserOutput>;
@@ -58,4 +59,22 @@ export interface IListService {
     findFollowers(listId: number, requesterId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
     followList(listId: number, userId: number): Promise<void>;
     unfollowList(listId: number, userId: number): Promise<void>;
+}
+
+export interface IGroupService {
+    create(data: GroupCreationData): Promise<Groups>;
+    update(data: Partial<Groups>, requesterId: number): Promise<Groups>;
+    delete(groupId: number, requesterId: number): Promise<void>;
+    findById(id: number, requesterId: number): Promise<Groups>;
+    findAll(requesterId: number, options?: RequestOptions): Promise<Groups[]>;
+    findMembers(groupId: number, requesterId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
+    removeMember(groupId: number, userId: number, requesterId: number): Promise<void>;
+    createJoinRequest(groupId: number, userId: number): Promise<JoinRequests>;
+    deleteJoinRequest(groupId: number, userId: number, requesterId: number): Promise<void>;
+    findJoinRequests(groupId: number, requesterId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
+    acceptJoinRequest(groupId: number, userId: number, requesterId: number): Promise<void>;
+    rejectJoinRequest(groupId: number, userId: number, requesterId: number): Promise<void>;
+    findPosts(groupId: number, requesterId: number, options?: RequestOptions): Promise<Post[]>;
+    deleteAllPosts(groupId: number, requesterId: number): Promise<void>;
+
 }
