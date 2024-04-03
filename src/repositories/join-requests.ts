@@ -1,14 +1,14 @@
-import { JoinRequests } from "@prisma/client";
-import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
 import { IJoinRequestRepository } from "../interfaces/repositories";
+import { GroupJoinRequest } from "../types/schema-types";
+import { database } from "../main";
+import { and, desc, eq } from "drizzle-orm";
+import { groupJoinRequests } from "../db/schema/group-join-requests";
 
-export class JoinRequestRepository implements IJoinRequestRepository<JoinRequests> {
-    async create(data: JoinRequests): Promise<JoinRequests> {
+export class JoinRequestRepository implements IJoinRequestRepository<GroupJoinRequest> {
+    async create(data: GroupJoinRequest): Promise<GroupJoinRequest> {
         try {
-            return await prismaClient.joinRequests.create({
-                data,
-            });
+            return (await database.insert(groupJoinRequests).values(data).returning())[0];
         } catch (error) {
             throw error;
         }
@@ -16,14 +16,9 @@ export class JoinRequestRepository implements IJoinRequestRepository<JoinRequest
 
     async delete(userId: number, groupId: number): Promise<void> {
         try {
-            await prismaClient.joinRequests.delete({
-                where: {
-                    userId_groupId: {
-                        userId,
-                        groupId,
-                    },
-                },
-            });
+            await database.delete(groupJoinRequests)
+                .where(and(eq(groupJoinRequests.userId, userId), eq(groupJoinRequests.groupId, groupId)))
+                .execute();
         } catch (error) {
             throw error;
         }
@@ -31,11 +26,9 @@ export class JoinRequestRepository implements IJoinRequestRepository<JoinRequest
 
     async deleteAll(groupId: number): Promise<void> {
         try {
-            await prismaClient.joinRequests.deleteMany({
-                where: {
-                    groupId,
-                },
-            });
+            await database.delete(groupJoinRequests)
+                .where(eq(groupJoinRequests.groupId, groupId))
+                .execute();
         } catch (error) {
             throw error;
         }
@@ -43,57 +36,41 @@ export class JoinRequestRepository implements IJoinRequestRepository<JoinRequest
 
     async deleteAllByUserId(userId: number): Promise<void> {
         try {
-            await prismaClient.joinRequests.deleteMany({
-                where: {
-                    userId,
-                },
-            });
+            await database.delete(groupJoinRequests)
+                .where(eq(groupJoinRequests.userId, userId))
+                .execute();
         } catch (error) {
             throw error;
         }
     }
 
-    async findAll(groupId: number, options: RequestOptions): Promise<JoinRequests[]> {
+    async findAll(groupId: number, options: RequestOptions): Promise<GroupJoinRequest[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 25;
 
         try {
-            return await prismaClient.joinRequests.findMany({
-                where: {
-                    groupId,
-                },
-                include: {
-                    user: true,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                }
-            });
+            return await database.select()
+                .from(groupJoinRequests)
+                .where(eq(groupJoinRequests.groupId, groupId))
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(desc(groupJoinRequests.createdAt));
         } catch (error) {
             throw error;
         }
     }
 
-    async findAllByUserId(userId: number, options: RequestOptions): Promise<JoinRequests[]> {
+    async findAllByUserId(userId: number, options: RequestOptions): Promise<GroupJoinRequest[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 25;
 
         try {
-            return await prismaClient.joinRequests.findMany({
-                where: {
-                    userId,
-                },
-                include: {
-                    group: true,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                }
-            });
+            return await database.select()
+                .from(groupJoinRequests)
+                .where(eq(groupJoinRequests.userId, userId))
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(desc(groupJoinRequests.createdAt));
         } catch (error) {
             throw error;
         }

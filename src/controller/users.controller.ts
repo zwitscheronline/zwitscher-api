@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { UserService } from "../services/user.service";
 import { UserCreationData } from "../types/user-data";
-import { ErrorWithStatus, isErr } from "../types/error";
-import { User } from "@prisma/client";
+import { ErrorWithStatus } from "../types/error";
 import { AuthService } from "../services/auth.service";
 import { RequestOptions } from "../types/request_options";
 import { UserOutputStrict } from "../types/user_output";
 import { PostService } from "../services/post.service";
+import { User } from "../types/schema-types";
 
 export class UserController {
   constructor(

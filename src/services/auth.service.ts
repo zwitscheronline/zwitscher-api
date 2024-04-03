@@ -1,4 +1,3 @@
-import { User } from "@prisma/client";
 import { UserRepository } from "../repositories/users";
 import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
@@ -9,6 +8,7 @@ import { AccessTokenData, RefreshTokenData } from "../types/token_data";
 import { sign, verify } from "jsonwebtoken";
 import { logger } from "../utils/logger";
 import { IAuthService } from "../interfaces/services";
+import { User } from "../types/schema-types";
 
 export class AuthService implements IAuthService<LoginCredentials, LoginResponse, AccessTokenData> {
   private readonly userRepository: UserRepository;
@@ -118,9 +118,12 @@ export class AuthService implements IAuthService<LoginCredentials, LoginResponse
       );
     }
 
+    if (!user.id) throw new ErrorWithStatus("User id is required", HTTPCodes.BadRequest);
+    if (!user.tokenVersion) throw new ErrorWithStatus("Token version is required", HTTPCodes.BadRequest);
+
     try {
       const refreshToken = this.generateRefreshToken({
-        sub: user.id.toString(),
+        sub: user.id?.toString(),
         tokenVersion: user.tokenVersion,
       });
 
@@ -160,6 +163,9 @@ export class AuthService implements IAuthService<LoginCredentials, LoginResponse
     if (!user || user.tokenVersion !== refreshTokenData.tokenVersion) {
       throw new ErrorWithStatus("Invalid token", HTTPCodes.Unauthorized);
     }
+
+    if (!user.id) throw new ErrorWithStatus("User id is required", HTTPCodes.BadRequest);
+
     try {
       return this.generateAccessToken({
         sub: user.id.toString(),

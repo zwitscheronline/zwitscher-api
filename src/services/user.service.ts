@@ -1,7 +1,6 @@
-import { User } from "@prisma/client";
 import { UserRepository } from "../repositories/users";
 import { compare, genSalt, hash } from "bcrypt";
-import { Err, ErrorWithStatus } from "../types/error";
+import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
 import {
   checkOwnerIDs,
@@ -19,6 +18,7 @@ import { FollowerRepository } from "../repositories/followers";
 import { logger } from "../utils/logger";
 import { IUserService } from "../interfaces/services";
 import { UserCreationData } from "../types/user-data";
+import { User } from "../types/schema-types";
 
 export class UserService implements IUserService {
   private readonly EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -31,69 +31,52 @@ export class UserService implements IUserService {
     private followingsRepository: FollowerRepository,
   ) {}
 
-  private async isValidEmail(email: string): Promise<Err | null> {
+  private async isValidEmail(email: string): Promise<boolean> {
     if (!this.EMAIL_REGEX.test(email)) {
-      return {
-        message: "Invalid email format",
-        status: HTTPCodes.BadRequest,
-      };
+      return false;
     }
 
     if ((await this.userRepository.findByEmail(email)) !== null) {
-      return {
-        message: "User with email already exists",
-        status: HTTPCodes.BadRequest,
-      };
+      return false;
     }
 
-    return null;
+    return true;
   }
 
-  private async isValidUserTag(userTag: string): Promise<Err | null> {
+  private async isValidUserTag(userTag: string): Promise<boolean> {
     if (!this.USER_TAG_REGEX.test(userTag)) {
-      return {
-        message:
-          "User tag must be at least 4 characters long and can only contain letters and numbers",
-        status: HTTPCodes.BadRequest,
-      };
+      return false;
     }
 
     if ((await this.userRepository.findByUserTag(userTag)) !== null) {
-      return {
-        message: "User with tag already exists",
-        status: HTTPCodes.BadRequest,
-      };
+      return false;
     }
 
-    return null;
+    return true;
   }
 
-  private async isValidPassword(password: string): Promise<Err | null> {
+  private async isValidPassword(password: string): Promise<boolean> {
     if (!this.PASSWORD_REGEX.test(password)) {
-      return {
-        message:
-          "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one special character and one number",
-        status: HTTPCodes.BadRequest,
-      };
+      return false;
     }
 
-    return null;
+    return true;
   }
 
   async create(data: UserCreationData): Promise<UserOutput> {
     const userTagError = await this.isValidUserTag(data.userTag);
-    if (userTagError !== null) {
-      throw new ErrorWithStatus(userTagError.message, userTagError.status);
+    if (userTagError === false) {
+      throw new ErrorWithStatus("User Tag is invalid", HTTPCodes.BadRequest);
     }
 
     const emailError = await this.isValidEmail(data.email);
-    if (emailError !== null) {
-      throw new ErrorWithStatus(emailError.message, emailError.status);
+    if (emailError === false) {
+      throw new ErrorWithStatus("Email is invalid", HTTPCodes.BadRequest);
     }
 
     const passwordError = await this.isValidPassword(data.password);
-    if (passwordError !== null) {
-      throw new ErrorWithStatus(passwordError.message, passwordError.status);
+    if (passwordError === false) {
+      throw new ErrorWithStatus("Password is invalid", HTTPCodes.BadGateway);
     }
 
     try {
@@ -147,15 +130,15 @@ export class UserService implements IUserService {
 
     if (data.email) {
       const emailError = await this.isValidEmail(data.email);
-      if (emailError !== null) {
-        throw new ErrorWithStatus(emailError.message, emailError.status);
+      if (emailError === false) {
+        throw new ErrorWithStatus("Email is invalid", HTTPCodes.BadRequest);
       }
     }
 
     if (data.userTag) {
       const userTagError = await this.isValidUserTag(data.userTag);
-      if (userTagError !== null) {
-        throw new ErrorWithStatus(userTagError.message, userTagError.status);
+      if (userTagError === false) {
+        throw new ErrorWithStatus("User tag is invalid", HTTPCodes.BadRequest);
       }
     }
 
@@ -205,8 +188,8 @@ export class UserService implements IUserService {
     const isValidPassword = await this.isValidPassword(newPassword);
     if (isValidPassword !== null) {
       throw new ErrorWithStatus(
-        isValidPassword.message,
-        isValidPassword.status
+        "Password is invalid",
+        HTTPCodes.BadRequest
       );
     }
 
@@ -363,7 +346,7 @@ export class UserService implements IUserService {
 
     try {
       await this.followingsRepository.create({
-        followedId: userId,
+        followingId: userId,
         followerId: requesterId,
         createdAt: new Date(),
       });
@@ -500,7 +483,7 @@ export class UserService implements IUserService {
 
     try {
       const followingUsers = await this.userRepository.findAll({
-        ids: following.map((following) => following.followedId),
+        ids: following.map((following) => following.followingId),
         page: 0,
         entriesPerPage: following.length,
         orderByField: "createdAt",

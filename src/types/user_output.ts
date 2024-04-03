@@ -1,5 +1,5 @@
-import { User } from "@prisma/client";
 import { excludeFields } from "../utils/exclude";
+import { User } from "./schema-types";
 
 export type UserOutputStrict = Omit<User, "password" | "email" | "tokenVersion">;
 export type UserOutput = Omit<User, "password">;

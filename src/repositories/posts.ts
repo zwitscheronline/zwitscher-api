@@ -1,32 +1,27 @@
-import { Post } from "@prisma/client";
-import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
 import { IPostRepository } from "../interfaces/repositories";
 import { PostCreationData } from "../types/post-data";
+import { Post } from "../types/schema-types";
+import { database } from "../main";
+import { and, desc, eq, isNull, or } from "drizzle-orm";
+import { posts } from "../db/schema/posts";
 
 export class PostRepository implements IPostRepository<Post> {
 
     async create(data: PostCreationData): Promise<Post> {
         try {
-            return await prismaClient.post.create({
-                data: {
-                    createdAt: new Date(),
-                    ...data,
-                },
-            });
+            return (await database.insert(posts).values(data).returning())[0];
         } catch (error) {
             throw error;
         }
     }
 
     async update(data: Post): Promise<Post> {
+
+        if (data.id === undefined) throw new Error("Post ID is required to update post.");
+
         try {
-            return await prismaClient.post.update({
-                where: {
-                    id: data.id,
-                },
-                data,
-            });
+            return (await database.update(posts).set(data).where(eq(posts.id, data.id)).returning())[0];
         } catch (error) {
             throw error;
         }
@@ -34,14 +29,7 @@ export class PostRepository implements IPostRepository<Post> {
 
     async delete(id: number): Promise<void> {
         try {
-            await prismaClient.post.update({
-                where: {
-                    id,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
-            });
+            await database.delete(posts).where(eq(posts.id, id)).execute();
         } catch (error) {
             throw error;
         }
@@ -49,14 +37,7 @@ export class PostRepository implements IPostRepository<Post> {
 
     async deleteAllOfUser(userId: number): Promise<void> {
         try {
-            await prismaClient.post.updateMany({
-                where: {
-                    authorId: userId,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
-            });
+            await database.delete(posts).where(eq(posts.authorId, userId)).execute();
         } catch (error) {
             throw error;
         }
@@ -67,31 +48,12 @@ export class PostRepository implements IPostRepository<Post> {
         const entriesPerPage = options.entriesPerPage || 25;
 
         try {
-            if (options.orderByField) {
-                return await prismaClient.post.findMany({
-                    where: {
-                        deletedAt: null,
-                        ...(options.ids && { id: { in: options.ids } }),
-                    },
-                    take: entriesPerPage,
-                    skip: (page - 1) * entriesPerPage,
-                    orderBy: {
-                        [options.orderByField]: options.orderBy,
-                    },
-                });
-            } else {
-                return await prismaClient.post.findMany({
-                    where: {
-                        deletedAt: null,
-                        ...(options.ids && { id: { in: options.ids } }),
-                    },
-                    take: entriesPerPage,
-                    skip: (page - 1) * entriesPerPage,
-                    orderBy: {
-                        createdAt: "desc",
-                    }
-                });
-            }
+            return await database.select()
+                .from(posts)
+                .where(and(or(...(options.ids ? options.ids.map(id => eq(posts.id, id)) : [])), isNull(posts.deletedAt)))
+                .limit(entriesPerPage)
+                .offset((page - 1) * entriesPerPage)
+                .orderBy(desc(posts.createdAt));
         } catch (error) {
             throw error;
         }
@@ -102,18 +64,22 @@ export class PostRepository implements IPostRepository<Post> {
         const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
-            return await prismaClient.post.findMany({
-                where: {
-                    authorId: userId,
-                    deletedAt: null,
-                },
-                take: entriesPerPage,
-                skip: (page - 1) * entriesPerPage,
-                orderBy: {
-                    createdAt: "desc",
-                },
-                include: {
-                    originalPost: true,
+            return await database.query.posts.findMany({
+                where: and(eq(posts.authorId, userId), isNull(posts.deletedAt)),
+                limit: entriesPerPage,
+                offset: (page - 1) * entriesPerPage,
+                orderBy: desc(posts.createdAt),
+                with: {
+                    originalPost: {
+                        with: {
+                            author: true,
+                        }
+                    },
+                    parentPost: {
+                        with: {
+                            author: true,
+                        }
+                    },
                 }
             });
         } catch (error) {
@@ -126,18 +92,17 @@ export class PostRepository implements IPostRepository<Post> {
         const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
-            return await prismaClient.post.findMany({
-                where: {
-                    parentPostId: postId,
-                    deletedAt: null,
-                },
-                take: entriesPerPage,
-                skip: (page - 1) * entriesPerPage,
-                orderBy: {
-                    createdAt: "desc",
-                },
-                include: {
-                    originalPost: true,
+            return await database.query.posts.findMany({
+                where: and(eq(posts.parentPostId, postId), isNull(posts.deletedAt)),
+                limit: entriesPerPage,
+                offset: (page - 1) * entriesPerPage,
+                orderBy: desc(posts.createdAt),
+                with: {
+                    originalPost: {
+                        with: {
+                            author: true,
+                        }
+                    }
                 }
             });
         } catch (error) {
@@ -147,16 +112,13 @@ export class PostRepository implements IPostRepository<Post> {
 
     async findParentOfPost(postId: number): Promise<Post | null> {
         try {
-            return await prismaClient.post.findFirst({
-                where: {
-                    id: postId,
-                    deletedAt: null,
-                },
-                include: {
-                    parentPost: true,
-                    originalPost: true,
-                },
+            const returning = await database.query.posts.findFirst({
+                where: and(eq(posts.id, postId), isNull(posts.deletedAt)),
             });
+
+            if (returning === undefined) return null;
+
+            return returning;
         } catch (error) {
             throw error;
         }
@@ -164,16 +126,25 @@ export class PostRepository implements IPostRepository<Post> {
 
     async findById(id: number): Promise<Post | null> {
         try {
-            return await prismaClient.post.findFirst({
-                where: {
-                    id,
-                    deletedAt: null,
-                },
-                include: {
-                    originalPost: true,
-                    parentPost: true,
+            const returning = await database.query.posts.findFirst({
+                where: and(eq(posts.id, id), isNull(posts.deletedAt)),
+                with: {
+                    originalPost: {
+                        with: {
+                            author: true,
+                        }
+                    },
+                    parentPost: {
+                        with: {
+                            author: true,
+                        }
+                    }
                 }
             });
+
+            if (returning === undefined) return null;
+
+            return returning;
         } catch (error) {
             throw error;
         }
@@ -184,18 +155,22 @@ export class PostRepository implements IPostRepository<Post> {
         const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
-            return await prismaClient.post.findMany({
-                where: {
-                    groupId,
-                    deletedAt: null,
-                },
-                take: entriesPerPage,
-                skip: (page - 1) * entriesPerPage,
-                orderBy: {
-                    createdAt: "desc",
-                },
-                include: {
-                    originalPost: true,
+            return await database.query.posts.findMany({
+                where: eq(posts.groupId, groupId),
+                limit: entriesPerPage,
+                offset: (page - 1) * entriesPerPage,
+                orderBy: desc(posts.createdAt),
+                with: {
+                    originalPost: {
+                        with: {
+                            author: true,
+                        }
+                    },
+                    parentPost: {
+                        with: {
+                            author: true,
+                        }
+                    }
                 }
             });
         } catch (error) {
@@ -205,14 +180,10 @@ export class PostRepository implements IPostRepository<Post> {
 
     async deleteAllOfGroup(groupId: number): Promise<void> {
         try {
-            await prismaClient.post.updateMany({
-                where: {
-                    groupId,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
-            });
+            await database.update(posts)
+                .set({ deletedAt: new Date() })
+                .where(eq(posts.groupId, groupId))
+                .execute();
         } catch (error) {
             throw error;
         }

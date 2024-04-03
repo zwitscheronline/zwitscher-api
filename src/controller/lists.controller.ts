@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { IListService } from "../interfaces/services";
 import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
-import { Lists } from "@prisma/client";
+import { List } from "../types/schema-types";
 
 export class ListController {
     constructor(
@@ -72,7 +72,7 @@ export class ListController {
     }
 
     async update(req: Request, res: Response) {
-        const data: Partial<Lists> = req.body;
+        const data: Partial<List> = req.body;
 
         let list = null;
 

@@ -1,31 +1,26 @@
-import { Lists } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
-import { prismaClient } from "../utils/database";
 import { IListRepository } from "../interfaces/repositories";
 import { ListCreationData } from "../types/list-data";
+import { List } from "../types/schema-types";
+import { database } from "../main";
+import { eq } from "drizzle-orm";
+import { lists } from "../db/schema/lists";
 
-export class ListRepository implements IListRepository<Lists> {
-    async create(data: ListCreationData): Promise<Lists> {
+export class ListRepository implements IListRepository<List> {
+    async create(data: ListCreationData): Promise<List> {
         try {
-            return await prismaClient.lists.create({
-                data: {
-                    createdAt: new Date(),
-                    ...data
-                },
-            });
+            return (await database.insert(lists).values(data).returning())[0];
         } catch (error) {
             throw error;
         }
     }
 
-    async update(data: Lists): Promise<Lists> {
+    async update(data: List): Promise<List> {
+
+        if (data.id === undefined) throw new Error("List ID is required to update list.");
+
         try {
-            return await prismaClient.lists.update({
-                where: {
-                    id: data.id,
-                },
-                data,
-            });
+            return (await database.update(lists).set(data).where(eq(lists.id, data.id)).returning())[0];
         } catch (error) {
             throw error;
         }
@@ -33,11 +28,7 @@ export class ListRepository implements IListRepository<Lists> {
 
     async delete(id: number): Promise<void> {
         try {
-            await prismaClient.lists.delete({
-                where: {
-                    id,
-                },
-            });
+            await database.delete(lists).where(eq(lists.id, id)).execute();
         } catch (error) {
             throw error;
         }
@@ -45,65 +36,46 @@ export class ListRepository implements IListRepository<Lists> {
 
     async deleteAll(userId: number): Promise<void> {
         try {
-            await prismaClient.lists.deleteMany({
-                where: {
-                    creatorId: userId,
-                },
-            });
+            await database.delete(lists).where(eq(lists.creatorId, userId)).execute();
         } catch (error) {
             throw error;
         }
     }
 
-    async findAll(options: RequestOptions): Promise<Lists[]> {
+    async findAll(options: RequestOptions): Promise<List[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 10;
 
         try {
-            return await prismaClient.lists.findMany({
-                where: {
-                    deletedAt: null,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(lists)
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(lists.createdAt);
         } catch (error) {
             throw error;
         }
     }
 
-    async findById(id: number): Promise<Lists | null> {
+    async findById(id: number): Promise<List | null> {
         try {
-            return await prismaClient.lists.findFirst({
-                where: {
-                    id,
-                    deletedAt: null,
-                },
-            });
+            return (await database.select().from(lists).where(eq(lists.id, id)).limit(1))[0];
         } catch (error) {
             throw error;
         }
     }
 
-    async findByUserId(userId: number, options: RequestOptions): Promise<Lists[]> {
+    async findByUserId(userId: number, options: RequestOptions): Promise<List[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 10;
 
         try {
-            return await prismaClient.lists.findMany({
-                where: {
-                    creatorId: userId,
-                    deletedAt: null,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(lists)
+                .where(eq(lists.creatorId, userId))
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(lists.createdAt);
         } catch (error) {
             throw error;
         }

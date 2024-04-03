@@ -3,7 +3,7 @@ import { IGroupService } from "../interfaces/services";
 import { GroupCreationData } from "../types/group-data";
 import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
-import { Groups } from "@prisma/client";
+import { Group } from "../types/schema-types";
 
 export class GroupController {
   constructor(private groupService: IGroupService) {}
@@ -77,7 +77,7 @@ export class GroupController {
     try {
       const requesterId = parseInt(req.params.requesterId);
       const groupId = parseInt(req.params.id);
-      const data: Partial<Groups> = req.body;
+      const data: Partial<Group> = req.body;
 
       data.id = groupId;
 

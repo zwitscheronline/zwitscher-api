@@ -1,15 +1,15 @@
-import { Likes } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
-import { prismaClient } from "../utils/database";
 import { ILikesRepository } from "../interfaces/repositories";
+import { Like } from "../types/schema-types";
+import { database } from "../main";
+import { and, desc, eq } from "drizzle-orm";
+import { likes } from "../db/schema/likes";
 
-export class LikeRepository implements ILikesRepository<Likes> {
+export class LikeRepository implements ILikesRepository<Like> {
 
-    async create(data: Likes): Promise<Likes> {
+    async create(data: Like): Promise<Like> {
         try {
-            return await prismaClient.likes.create({
-                data,
-            });
+            return (await database.insert(likes).values(data).returning())[0];
         } catch (error) {
             throw error;
         }
@@ -17,14 +17,7 @@ export class LikeRepository implements ILikesRepository<Likes> {
 
     async delete(userId: number, postId: number): Promise<void> {
         try {
-            await prismaClient.likes.delete({
-                where: {
-                    userId_postId: {
-                        userId,
-                        postId,
-                    },
-                },
-            });
+            await database.delete(likes).where(and(eq(likes.userId, userId), eq(likes.postId, postId))).execute();
         } catch (error) {
             throw error;
         }
@@ -32,70 +25,47 @@ export class LikeRepository implements ILikesRepository<Likes> {
 
     async deleteAll(userId: number): Promise<void> {
         try {
-            await prismaClient.likes.deleteMany({
-                where: {
-                    userId,
-                },
-            });
+            await database.delete(likes).where(eq(likes.userId, userId)).execute();
         } catch (error) {
             throw error;
         }
     }
 
-    async findWithPostAndUser(postId: number, userId: number): Promise<Likes | null> {
+    async findWithPostAndUser(postId: number, userId: number): Promise<Like | null> {
         try {
-            return await prismaClient.likes.findFirst({
-                where: {
-                    AND: [
-                        {
-                            postId,
-                        },
-                        {
-                            userId,
-                        },
-                    ]
-                },
-            });
+            return (await database.select().from(likes).where(and(eq(likes.postId, postId), eq(likes.userId, userId))))[0];
         } catch (error) {
             throw error;
         }
     }
 
-    async findAllOfUser(userId: number, options?: RequestOptions): Promise<Likes[]> {
+    async findAllOfUser(userId: number, options?: RequestOptions): Promise<Like[]> {
         const page = options?.page || 1;
         const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
-            return await prismaClient.likes.findMany({
-                where: {
-                    userId,
-                },
-                take: entriesPerPage,
-                skip: (page - 1) * entriesPerPage,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(likes)
+                .where(eq(likes.userId, userId))
+                .limit(entriesPerPage)
+                .offset((page - 1) * entriesPerPage)
+                .orderBy(desc(likes.createdAt));
         } catch (error) {
             throw error;
         }
     }
 
-    async findAllOfPost(postId: number, options?: RequestOptions): Promise<Likes[]> {
+    async findAllOfPost(postId: number, options?: RequestOptions): Promise<Like[]> {
         const page = options?.page || 1;
         const entriesPerPage = options?.entriesPerPage || 25;
 
         try {
-            return await prismaClient.likes.findMany({
-                where: {
-                    postId,
-                },
-                take: entriesPerPage,
-                skip: (page - 1) * entriesPerPage,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(likes)
+                .where(eq(likes.postId, postId))
+                .limit(entriesPerPage)
+                .offset((page - 1) * entriesPerPage)
+                .orderBy(desc(likes.createdAt));
         } catch (error) {
             throw error;
         }

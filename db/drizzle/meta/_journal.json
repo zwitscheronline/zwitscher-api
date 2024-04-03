@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1712061123533,
+      "tag": "0000_dear_nick_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1712143028600,
+      "tag": "0001_pretty_solo",
+      "breakpoints": true
+    }
+  ]
+}

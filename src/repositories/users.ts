@@ -1,17 +1,17 @@
-import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
 import { IUserRepository } from "../interfaces/repositories";
 import { UserCreationData } from "../types/user-data";
-import { User } from "@prisma/client";
 import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
+import { User } from "../types/schema-types";
+import { users } from "../db/schema/users";
+import { database } from "../main";
+import { and, desc, eq, isNull, or } from "drizzle-orm";
 
 export class UserRepository implements IUserRepository<User> {
   async create(data: UserCreationData): Promise<User> {
     try {
-      return await prismaClient.user.create({
-        data,
-      });
+      return (await database.insert(users).values(data).returning())[0];
     } catch (error) {
       throw error;
     }
@@ -22,39 +22,32 @@ export class UserRepository implements IUserRepository<User> {
     }
     
     try {
-      return await prismaClient.user.update({
-        where: {
-          id: data.id,
-          deletedAt: null,
-        },
-        data,
-      });
+      return (await database.update(users)
+        .set(data)
+        .where(eq(users.id, data.id))
+        .returning())[0];
     } catch (error) {
       throw error;
     }
   }
   async delete(id: number): Promise<void> {
     try {
-      await prismaClient.user.update({
-        where: {
-          id,
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
+      await database.delete(users)
+        .where(eq(users.id, id))
+        .execute();
     } catch (error) {
       throw error;
     }
   }
   async findById(id: number): Promise<User | null> {
     try {
-      return await prismaClient.user.findUnique({
-        where: {
-          id,
-          deletedAt: null,
-        },
+      const ret = await database.query.users.findFirst({
+        where: and(isNull(users.deletedAt), eq(users.id, id)),
       });
+
+      if (!ret) return null;
+
+      return ret;
     } catch (error) {
       throw error;
     }
@@ -64,28 +57,12 @@ export class UserRepository implements IUserRepository<User> {
     const entriesPerPage: number = options.entriesPerPage || 25;
 
     try {
-      if (options.orderByField) {
-        return await prismaClient.user.findMany({
-          where: {
-            deletedAt: null,
-            ...(options.ids && { id: { in: options.ids } }),
-          },
-          orderBy: {
-            [options.orderByField]: options.orderBy,
-          },
-          skip: (page - 1) * entriesPerPage,
-          take: entriesPerPage,
-        });
-      } else {
-        return await prismaClient.user.findMany({
-          where: {
-            deletedAt: null,
-            ...(options.ids && { id: { in: options.ids } }),
-          },
-          skip: (page - 1) * entriesPerPage,
-          take: entriesPerPage,
-        });
-      }
+      return await database.query.users.findMany({
+        where: and(isNull(users.deletedAt), or(...(options.ids ? options.ids.map(id => eq(users.id, id)) : []))),
+        orderBy: desc(users.createdAt),
+        limit: entriesPerPage,
+        offset: (page - 1) * entriesPerPage,
+      });
     } catch (error) {
       throw error;
     }
@@ -93,12 +70,13 @@ export class UserRepository implements IUserRepository<User> {
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      return await prismaClient.user.findUnique({
-        where: {
-          email,
-          deletedAt: null,
-        },
+      const ret = await database.query.users.findFirst({
+        where: and(isNull(users.deletedAt), eq(users.email, email)),
       });
+      
+      if (!ret) return null;
+
+      return ret;
     } catch (error) {
       throw error;
     }
@@ -106,12 +84,13 @@ export class UserRepository implements IUserRepository<User> {
 
   async findByUserTag(userTag: string): Promise<User | null> {
     try {
-      return await prismaClient.user.findUnique({
-        where: {
-          userTag,
-          deletedAt: null,
-        },
+      const ret = await database.query.users.findFirst({
+        where: and(isNull(users.deletedAt), eq(users.userTag, userTag)),
       });
+
+      if (!ret) return null;
+
+      return ret;
     } catch (error) {
       throw error;
     }

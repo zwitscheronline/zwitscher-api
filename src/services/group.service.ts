@@ -1,11 +1,4 @@
 import {
-  Groups,
-  JoinRequests,
-  Post,
-  User,
-  UsersInGroups,
-} from "@prisma/client";
-import {
   IGroupMemberRepository,
   IGroupRepository,
   IJoinRequestRepository,
@@ -18,17 +11,18 @@ import { HTTPCodes } from "../types/http_codes.enum";
 import { RequestOptions } from "../types/request_options";
 import { UserOutputStrict, toUserOutputStrict } from "../types/user_output";
 import { IGroupService } from "../interfaces/services";
+import { Group, GroupJoinRequest, GroupMember, Post, User } from "../types/schema-types";
 
 export class GroupService implements IGroupService {
   constructor(
-    private groupRepository: IGroupRepository<Groups>,
-    private groupMemberRepository: IGroupMemberRepository<UsersInGroups>,
-    private joinRequestRepository: IJoinRequestRepository<JoinRequests>,
+    private groupRepository: IGroupRepository<Group>,
+    private groupMemberRepository: IGroupMemberRepository<GroupMember>,
+    private joinRequestRepository: IJoinRequestRepository<GroupJoinRequest>,
     private userRepository: IUserRepository<User>,
     private postRepository: IPostRepository<Post>
   ) {}
 
-  async create(data: GroupCreationData): Promise<Groups> {
+  async create(data: GroupCreationData): Promise<Group> {
     let group = null;
 
     try {
@@ -36,6 +30,9 @@ export class GroupService implements IGroupService {
     } catch (error) {
       throw error;
     }
+
+    if (!group.id) throw new ErrorWithStatus("Group ID is needed", HTTPCodes.InternalServerError);
+    if (!data.creatorId)
 
     try {
       await this.groupMemberRepository.create({
@@ -51,7 +48,7 @@ export class GroupService implements IGroupService {
     return group;
   }
 
-  async update(data: Partial<Groups>, requesterId: number): Promise<Groups> {
+  async update(data: Partial<Group>, requesterId: number): Promise<Group> {
     if (data.id === undefined) {
       throw new ErrorWithStatus("Group ID is required", HTTPCodes.BadRequest);
     }
@@ -116,7 +113,7 @@ export class GroupService implements IGroupService {
     await this.groupRepository.delete(groupId);
   }
 
-  async findById(id: number, requesterId: number): Promise<Groups> {
+  async findById(id: number, requesterId: number): Promise<Group> {
     let group = null;
 
     try {
@@ -161,7 +158,7 @@ export class GroupService implements IGroupService {
   async findAll(
     requesterId: number,
     options?: RequestOptions
-  ): Promise<Groups[]> {
+  ): Promise<Group[]> {
     let groups = null;
 
     try {
@@ -173,6 +170,8 @@ export class GroupService implements IGroupService {
     return groups.filter(async (group) => {
       if (group.isPrivate) {
         let groupMember = null;
+
+        if (!group.id) throw new ErrorWithStatus("Group ID is needed", HTTPCodes.InternalServerError);
 
         try {
           groupMember = await this.groupMemberRepository.findByUserAndGroup(
@@ -304,7 +303,7 @@ export class GroupService implements IGroupService {
   async createJoinRequest(
     groupId: number,
     userId: number
-  ): Promise<JoinRequests> {
+  ): Promise<GroupJoinRequest> {
     let joinRequest = null;
 
     try {

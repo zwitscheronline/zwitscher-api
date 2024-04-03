@@ -2,10 +2,21 @@ import express from "express";
 import dotenv from "dotenv";
 import { initRouting } from "./routes/routes";
 import bodyParser from "body-parser";
-import { initDatabaseConnection } from "./utils/database";
 import morgan from "morgan";
+import { getConnection } from "./db";
 
 dotenv.config();
+
+let db = null;
+
+try {
+    db = getConnection();
+} catch (error) {
+    console.log(error);
+    process.exit(1);
+}
+
+export const database = db;
 
 const app = express();
 app.use(bodyParser.json());
@@ -21,8 +32,6 @@ app.use(morgan(function (tokens, req, res) {
         "ms",
     ].join(" ");
 }));
-
-initDatabaseConnection();
 
 app.use(initRouting());
 

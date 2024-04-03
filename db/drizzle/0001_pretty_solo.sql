@@ -1,0 +1,1 @@
+ALTER TABLE "group_members" ADD COLUMN "created_by_id" serial NOT NULL;

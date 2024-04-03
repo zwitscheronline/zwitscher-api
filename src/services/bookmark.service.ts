@@ -1,12 +1,12 @@
-import { Bookmarks, Post } from "@prisma/client";
 import { IBookmarkService } from "../interfaces/services";
 import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { IBookmarkRepository, IPostRepository } from "../interfaces/repositories";
+import { Bookmark, Post } from "../types/schema-types";
 
 export class BookmarkService implements IBookmarkService {
     constructor(
-        private bookmarkRepository: IBookmarkRepository<Bookmarks>,
+        private bookmarkRepository: IBookmarkRepository<Bookmark>,
         private postRepository: IPostRepository<Post>
     ) {}
 

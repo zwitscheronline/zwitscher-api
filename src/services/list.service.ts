@@ -1,4 +1,3 @@
-import { ListFollowers, Lists, User, UsersInLists } from "@prisma/client";
 import { IListFollowerRepository, IListMemberRepository, IListRepository, IUserRepository } from "../interfaces/repositories";
 import { IListService } from "../interfaces/services";
 import { ListCreationData } from "../types/list-data";
@@ -6,16 +5,17 @@ import { RequestOptions } from "../types/request_options";
 import { ErrorWithStatus } from "../types/error";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { UserOutputStrict } from "../types/user_output";
+import { List, ListFollower, ListMember, User } from "../types/schema-types";
 
 export class ListService implements IListService {
     constructor(
-        private listRepository: IListRepository<Lists>,
-        private listMemberRepository: IListMemberRepository<UsersInLists>,
+        private listRepository: IListRepository<List>,
+        private listMemberRepository: IListMemberRepository<ListMember>,
         private userRepository: IUserRepository<User>,
-        private listFollowerRepository: IListFollowerRepository<ListFollowers>
+        private listFollowerRepository: IListFollowerRepository<ListFollower>
     ) {}
 
-    async create(data: ListCreationData): Promise<Lists> {
+    async create(data: ListCreationData): Promise<List> {
         try {
             return await this.listRepository.create({
                 name: data.name,
@@ -28,7 +28,7 @@ export class ListService implements IListService {
         }
     }
 
-    async update(data: Partial<Lists>, requesterId: number): Promise<Lists> {
+    async update(data: Partial<List>, requesterId: number): Promise<List> {
         if (!data.id) {
             throw new ErrorWithStatus("List ID is required", HTTPCodes.BadRequest);
         }
@@ -67,7 +67,7 @@ export class ListService implements IListService {
         }
     }
 
-    async findById(id: number, requesterId: number): Promise<Lists> {
+    async findById(id: number, requesterId: number): Promise<List> {
         let list = null;
 
         try {
@@ -87,7 +87,7 @@ export class ListService implements IListService {
         return list;
     }
 
-    async findAll(requesterId: number, options?: RequestOptions): Promise<Lists[]> {
+    async findAll(requesterId: number, options?: RequestOptions): Promise<List[]> {
         let lists = null;
 
         try {
@@ -229,7 +229,7 @@ export class ListService implements IListService {
         }
 
         try {
-            return await this.userRepository.findAll({ ids: followers.map((follower) => follower.followerId) });
+            return await this.userRepository.findAll({ ids: followers.map((follower) => follower.userId) });
         } catch (error) {
             throw new ErrorWithStatus("Error finding followers", HTTPCodes.InternalServerError);
         }
@@ -254,7 +254,7 @@ export class ListService implements IListService {
         try {
             await this.listFollowerRepository.create({
                 listId,
-                followerId: userId,
+                userId,
                 createdAt: new Date(),
             });
         } catch (error) {

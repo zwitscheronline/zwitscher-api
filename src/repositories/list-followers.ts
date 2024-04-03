@@ -1,14 +1,14 @@
-import { ListFollowers } from "@prisma/client";
-import { prismaClient } from "../utils/database";
 import { RequestOptions } from "../types/request_options";
 import { IListFollowerRepository } from "../interfaces/repositories";
+import { ListFollower } from "../types/schema-types";
+import { database } from "../main";
+import { and, desc, eq } from "drizzle-orm";
+import { listFollowers } from "../db/schema/list-followers";
 
-export class ListFollowerRepository implements IListFollowerRepository<ListFollowers> {
-    async create(data: ListFollowers): Promise<ListFollowers> {
+export class ListFollowerRepository implements IListFollowerRepository<ListFollower> {
+    async create(data: ListFollower): Promise<ListFollower> {
         try {
-            return await prismaClient.listFollowers.create({
-                data,
-            });
+            return (await database.insert(listFollowers).values(data).returning())[0];
         } catch (error) {
             throw error;
         }
@@ -16,14 +16,9 @@ export class ListFollowerRepository implements IListFollowerRepository<ListFollo
 
     async delete(userId: number, listId: number): Promise<void> {
         try {
-            await prismaClient.listFollowers.delete({
-                where: {
-                    listId_followerId: {
-                        listId,
-                        followerId: userId,
-                    },
-                },
-            });
+            await database.delete(listFollowers)
+                .where(and(eq(listFollowers.userId, userId), eq(listFollowers.listId, listId)))
+                .execute();
         } catch (error) {
             throw error;
         }
@@ -31,11 +26,9 @@ export class ListFollowerRepository implements IListFollowerRepository<ListFollo
 
     async deleteAll(listId: number): Promise<void> {
         try {
-            await prismaClient.listFollowers.deleteMany({
-                where: {
-                    listId,
-                },
-            });
+            await database.delete(listFollowers)
+                .where(eq(listFollowers.listId, listId))
+                .execute();
         } catch (error) {
             throw error;
         }
@@ -43,64 +36,53 @@ export class ListFollowerRepository implements IListFollowerRepository<ListFollo
 
     async deleteAllByUserId(userId: number): Promise<void> {
         try {
-            await prismaClient.listFollowers.deleteMany({
-                where: {
-                    followerId: userId,
-                },
-            });
+            await database.delete(listFollowers)
+                .where(eq(listFollowers.userId, userId))
+                .execute();
         } catch (error) {
             throw error;
         }
     }
 
-    async findAll(listId: number, options: RequestOptions): Promise<ListFollowers[]> {
+    async findAll(listId: number, options: RequestOptions): Promise<ListFollower[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 25;
 
         try {
-            return await prismaClient.listFollowers.findMany({
-                where: {
-                    listId,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(listFollowers)
+                .where(eq(listFollowers.listId, listId))
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(desc(listFollowers.createdAt));
         } catch (error) {
             throw error;
         }
     }
 
-    async findAllByUserId(userId: number, options: RequestOptions): Promise<ListFollowers[]> {
+    async findAllByUserId(userId: number, options: RequestOptions): Promise<ListFollower[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 25;
 
         try {
-            return await prismaClient.listFollowers.findMany({
-                where: {
-                    followerId: userId,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(listFollowers)
+                .where(eq(listFollowers.userId, userId))
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(desc(listFollowers.createdAt));
         } catch (error) {
             throw error;
         }
     }
 
-    async findConnection(userId: number, listId: number): Promise<ListFollowers | null> {
+    async findConnection(userId: number, listId: number): Promise<ListFollower | null> {
         try {
-            return await prismaClient.listFollowers.findFirst({
-                where: {
-                    listId,
-                    followerId: userId,
-                }
-            });
+            return (await database.select()
+                .from(listFollowers)
+                .where(and(eq(listFollowers.userId, userId), eq(listFollowers.listId, listId)))
+                .limit(1)
+            )[0] || null;
         } catch (error) {
             throw error;
         }

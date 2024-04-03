@@ -1,28 +1,28 @@
-import { Groups } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
-import { prismaClient } from "../utils/database";
 import { IGroupRepository } from "../interfaces/repositories";
 import { GroupCreationData } from "../types/group-data";
+import { Group } from "../types/schema-types";
+import { database } from "../main";
+import { desc, eq } from "drizzle-orm";
+import { groups } from "../db/schema/groups";
 
-export class GroupRepository implements IGroupRepository<Groups> {
-    async create(data: GroupCreationData): Promise<Groups> {
+export class GroupRepository implements IGroupRepository<Group> {
+    async create(data: GroupCreationData): Promise<Group> {
         try {
-            return await prismaClient.groups.create({
-                data,
-            });
+            return (await database.insert(groups).values(data).returning())[0];
         } catch (error) {
             throw error;
         }
     }
 
-    async update(data: Groups): Promise<Groups> {
+    async update(data: Group): Promise<Group> {
+
+        if (data.id === undefined) {
+            throw new Error("Group ID is required to update a group.");
+        }
+
         try {
-            return await prismaClient.groups.update({
-                where: {
-                    id: data.id,
-                },
-                data,
-            });
+            return (await database.update(groups).set(data).where(eq(groups.id, data.id)).returning())[0];
         } catch (error) {
             throw error;
         }
@@ -30,14 +30,7 @@ export class GroupRepository implements IGroupRepository<Groups> {
 
     async delete(id: number): Promise<void> {
         try {
-            await prismaClient.groups.update({
-                where: {
-                    id,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
-            });
+            await database.delete(groups).where(eq(groups.id, id)).execute();
         } catch (error) {
             throw error;
         }
@@ -45,46 +38,30 @@ export class GroupRepository implements IGroupRepository<Groups> {
 
     async deleteAll(userId: number): Promise<void> {
         try {
-            await prismaClient.groups.updateMany({
-                where: {
-                    creatorId: userId,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
-            });
+            await database.delete(groups).where(eq(groups.creatorId, userId)).execute();
         } catch (error) {
             throw error;
         }
     }
 
-    async findAll(options: RequestOptions): Promise<Groups[]> {
+    async findAll(options: RequestOptions): Promise<Group[]> {
         const page = options.page || 1;
         const limit = options.entriesPerPage || 10;
 
         try {
-            return await prismaClient.groups.findMany({
-                where: {
-                    deletedAt: null,
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
+            return await database.select()
+                .from(groups)
+                .limit(limit)
+                .offset((page - 1) * limit)
+                .orderBy(desc(groups.createdAt));
         } catch (error) {
             throw error;
         }
     }
 
-    async findById(id: number): Promise<Groups | null> {
+    async findById(id: number): Promise<Group | null> {
         try {
-            return await prismaClient.groups.findUnique({
-                where: {
-                    id,
-                },
-            });
+            return (await database.select().from(groups).where(eq(groups.id, id)).limit(1))[0] || null;
         } catch (error) {
             throw error;
         }

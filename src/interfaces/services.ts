@@ -1,10 +1,10 @@
-import { Groups, JoinRequests, Lists, Post, User } from "@prisma/client";
 import { RequestOptions } from "../types/request_options";
 import { UserCreationData } from "../types/user-data";
 import { UserOutput, UserOutputStrict } from "../types/user_output";
 import { PostCreationData } from "../types/post-data";
 import { ListCreationData } from "../types/list-data";
 import { GroupCreationData } from "../types/group-data";
+import { Group, GroupJoinRequest, List, Post, User } from "../types/schema-types";
 
 export interface IUserService {
     create(data: UserCreationData): Promise<UserOutput>;
@@ -48,11 +48,11 @@ export interface IBookmarkService {
 }
 
 export interface IListService {
-    create(data: ListCreationData): Promise<Lists>;
-    update(data: Partial<Lists>, requesterId: number): Promise<Lists>;
+    create(data: ListCreationData): Promise<List>;
+    update(data: Partial<List>, requesterId: number): Promise<List>;
     delete(listId: number, requesterId: number): Promise<void>;
-    findById(id: number, requesterId: number): Promise<Lists>;
-    findAll(requesterId: number, options?: RequestOptions): Promise<Lists[]>;
+    findById(id: number, requesterId: number): Promise<List>;
+    findAll(requesterId: number, options?: RequestOptions): Promise<List[]>;
     findMembers(listId: number, requesterId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
     addMember(listId: number, userId: number, requesterId: number): Promise<void>;
     removeMember(listId: number, userId: number, requesterId: number): Promise<void>;
@@ -62,14 +62,14 @@ export interface IListService {
 }
 
 export interface IGroupService {
-    create(data: GroupCreationData): Promise<Groups>;
-    update(data: Partial<Groups>, requesterId: number): Promise<Groups>;
+    create(data: GroupCreationData): Promise<Group>;
+    update(data: Partial<Group>, requesterId: number): Promise<Group>;
     delete(groupId: number, requesterId: number): Promise<void>;
-    findById(id: number, requesterId: number): Promise<Groups>;
-    findAll(requesterId: number, options?: RequestOptions): Promise<Groups[]>;
+    findById(id: number, requesterId: number): Promise<Group>;
+    findAll(requesterId: number, options?: RequestOptions): Promise<Group[]>;
     findMembers(groupId: number, requesterId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
     removeMember(groupId: number, userId: number, requesterId: number): Promise<void>;
-    createJoinRequest(groupId: number, userId: number): Promise<JoinRequests>;
+    createJoinRequest(groupId: number, userId: number): Promise<GroupJoinRequest>;
     deleteJoinRequest(groupId: number, userId: number, requesterId: number): Promise<void>;
     findJoinRequests(groupId: number, requesterId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
     acceptJoinRequest(groupId: number, userId: number, requesterId: number): Promise<void>;

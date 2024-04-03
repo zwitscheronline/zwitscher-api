@@ -1,17 +1,17 @@
 import { RequestOptions } from "../types/request_options";
-import { Likes, Post, User } from "@prisma/client";
 import { HTTPCodes } from "../types/http_codes.enum";
 import { IPostService } from "../interfaces/services";
 import { ErrorWithStatus } from "../types/error";
 import { PostCreationData } from "../types/post-data";
 import { UserOutputStrict, toUserOutputStrict } from "../types/user_output";
 import { ILikesRepository, IPostRepository, IUserRepository } from "../interfaces/repositories";
+import { Like, Post, User } from "../types/schema-types";
 
 export class PostService implements IPostService {
   constructor(
     private postRepository: IPostRepository<Post>,
     private userRepository: IUserRepository<User>,
-    private likeRepository: ILikesRepository<Likes>
+    private likeRepository: ILikesRepository<Like>
   ) {}
 
   private async isValidUserID(id: number): Promise<boolean> {
