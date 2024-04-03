@@ -22,6 +22,7 @@ import { GroupService } from "../services/group.service";
 import { GroupRepository } from "../repositories/groups";
 import { GroupMemberRepository } from "../repositories/group-member";
 import { JoinRequestRepository } from "../repositories/join-requests";
+import { healthCheck } from "./health-check.routes";
 
 export const initRouting = (): Router => {
     const router = Router();
@@ -51,6 +52,7 @@ export const initRouting = (): Router => {
     router.use("/lists", initListsRoutes(listService, userService));
     router.use("/posts", initPostRoutes(postService, userService));
     router.use("/users", initUserRoutes(userService, authService, postService));
+    router.get("/health-check", healthCheck);
 
     return router;
 }
