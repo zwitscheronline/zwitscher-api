@@ -19,12 +19,18 @@ export class UserController {
   async create(req: Request, res: Response) {
     try {
       const data: UserCreationData = {
-        email: req.body.email,
-        password: req.body.password,
-        userTag: req.body.userTag,
+        email: req.body.email ?? undefined,
+        password: req.body.password ?? undefined,
+        userTag: req.body.userTag ?? undefined,
         userName: req.body.userName ?? undefined,
         biography: req.body.biography ?? undefined,
       };
+
+      if (!data.email || !data.password || !data.userTag) {
+        return res.status(HTTPCodes.BadRequest).json({
+          error: "Missing required fields",
+        });
+      }
 
       const returning = await this.userService.create(data);
 
@@ -37,8 +43,8 @@ export class UserController {
           error: error.message,
         });
       } else {
-        return res.status(error.status).json({
-          error: error.message,
+        return res.status(HTTPCodes.InternalServerError).json({
+          error,
         });
       }
     }
@@ -87,6 +93,7 @@ export class UserController {
     }
   }
 
+  // FIX: Just don't let people delete their accounts
   async delete(req: Request, res: Response) {
     try {
       const userId = parseInt(req.params.id);
@@ -97,7 +104,22 @@ export class UserController {
       }
 
       const requesterId = parseInt(req.params.requesterId);
-      //TODO: delete likes, posts, groups, lists, etc
+
+      try {
+        await this.postService.deleteAllOfUser(userId, requesterId);
+      } catch (error) {
+        return res.status(HTTPCodes.InternalServerError).json({
+          error: "Unable to delete user posts",
+        });
+      }
+
+      try {
+        await this.postService.deleteLikesOfUser(userId);
+      } catch (error) {
+        return res.status(HTTPCodes.InternalServerError).json({
+          error: "Unable to delete user likes",
+        });
+      }
 
       await this.userService.delete(
         userId,

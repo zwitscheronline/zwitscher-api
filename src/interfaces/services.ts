@@ -39,6 +39,8 @@ export interface IPostService {
     deleteLike(postId: number, userId: number): Promise<void>;
     findLikesOfPost(postId: number, options?: RequestOptions): Promise<UserOutputStrict[]>;
     findPostsOfUser(userId: number): Promise<Post[]>;
+    deleteLikesOfPost(postId: number): Promise<void>;
+    deleteLikesOfUser(userId: number): Promise<void>;
 }
 
 export interface IBookmarkService {

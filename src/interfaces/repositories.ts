@@ -63,6 +63,8 @@ interface ILikesRepository<T> {
     findWithPostAndUser(postId: number, userId: number): Promise<T|null>;
     findAllOfUser(userId: number, options?: RequestOptions): Promise<T[]>;
     findAllOfPost(postId: number, options?: RequestOptions): Promise<T[]>;
+    deleteAllOfPost(postId: number): Promise<void>;
+    deleteAllOfUser(userId: number): Promise<void>;
 }
 
 interface IJoinRequestRepository<T> {

@@ -182,6 +182,28 @@ export class PostService implements IPostService {
       );
     }
 
+    const posts = await this.findPostsOfUser(userId);
+
+    for (const post of posts) {
+      try {
+        if (post.id === undefined) {
+          throw new ErrorWithStatus(
+            "Post id is undefined",
+            HTTPCodes.InternalServerError
+          );
+        }
+        await this.delete(post.id, requesterId);
+      } catch (error) {
+        if (error instanceof ErrorWithStatus) {
+          throw error;
+        }
+        throw new ErrorWithStatus(
+          `Error while deleting posts: ${error}`,
+          HTTPCodes.InternalServerError
+        );
+      }
+    }
+
     try {
       await this.postRepository.deleteAllOfUser(userId);
     } catch (error) {
@@ -256,6 +278,34 @@ export class PostService implements IPostService {
       }
       throw new ErrorWithStatus(
         `Error while toggling like: ${error}`,
+        HTTPCodes.InternalServerError
+      );
+    }
+  }
+
+  async deleteLikesOfPost(postId: number): Promise<void> {
+    try {
+      await this.likeRepository.deleteAllOfPost(postId);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        throw error;
+      }
+      throw new ErrorWithStatus(
+        `Error while deleting likes: ${error}`,
+        HTTPCodes.InternalServerError
+      );
+    }
+  }
+
+  async deleteLikesOfUser(userId: number): Promise<void> {
+    try {
+      await this.likeRepository.deleteAllOfUser(userId);
+    } catch (error) {
+      if (error instanceof ErrorWithStatus) {
+        throw error;
+      }
+      throw new ErrorWithStatus(
+        `Error while deleting likes: ${error}`,
         HTTPCodes.InternalServerError
       );
     }

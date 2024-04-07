@@ -70,4 +70,20 @@ export class LikeRepository implements ILikesRepository<Like> {
             throw error;
         }
     }
+
+    async deleteAllOfPost(postId: number): Promise<void> {
+        try {
+            await database.delete(likes).where(eq(likes.postId, postId)).execute();
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteAllOfUser(userId: number): Promise<void> {
+        try {
+            await database.delete(likes).where(eq(likes.userId, userId)).execute();
+        } catch (error) {
+            throw error;
+        }
+    }
 }
