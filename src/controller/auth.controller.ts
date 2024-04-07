@@ -23,7 +23,10 @@ export class AuthController {
       res.header("Authorization", returning.token);
       res.header("refresh-token", returning.refreshToken);
 
-      return res.status(HTTPCodes.Ok).json({ message: "Logged in" });
+      return res.status(HTTPCodes.Ok).json({ 
+        message: "Logged in",
+        user: returning.user,
+      });
     } catch (error) {
       if (error instanceof ErrorWithStatus) {
         return res.status(error.status).json({

@@ -34,7 +34,11 @@ app.use(morgan(function (tokens, req, res) {
     ].join(" ");
 }));
 
-app.use(cors());
+app.use(cors({
+    exposedHeaders: ["Authorization", "Refresh-Token"],
+}));
+
+app.options("*", cors());
 
 app.use(initRouting());
 

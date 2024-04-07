@@ -119,7 +119,7 @@ export class AuthService implements IAuthService<LoginCredentials, LoginResponse
     }
 
     if (!user.id) throw new ErrorWithStatus("User id is required", HTTPCodes.BadRequest);
-    if (!user.tokenVersion) throw new ErrorWithStatus("Token version is required", HTTPCodes.BadRequest);
+    if (user.tokenVersion === undefined || user.tokenVersion === null) throw new ErrorWithStatus("Token version is required", HTTPCodes.BadRequest);
 
     try {
       const refreshToken = this.generateRefreshToken({
@@ -136,6 +136,7 @@ export class AuthService implements IAuthService<LoginCredentials, LoginResponse
       return {
         token: accessToken,
         refreshToken,
+        user,
       };
     } catch (error) {
       console.error(error);
