@@ -4,6 +4,7 @@ import { initRouting } from "./routes/routes";
 import bodyParser from "body-parser";
 import morgan from "morgan";
 import { getConnection } from "./db";
+import cors from "cors";
 
 dotenv.config();
 
@@ -32,6 +33,8 @@ app.use(morgan(function (tokens, req, res) {
         "ms",
     ].join(" ");
 }));
+
+app.use(cors());
 
 app.use(initRouting());
 
